@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dhruv Aggarwal · Backend Developer</title>
+<meta name="description" content="Interactive 3D resume of Dhruv Aggarwal — Backend Developer (Node.js). Explore the services, switch themes, or open the terminal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ───────────── Theme tokens ───────────── */
+:root, body[data-theme="neon"] {
+  --bg:#07020f; --fg:#efe9ff; --muted:#a79bc9; --accent:#ff2bd6; --accent2:#00f0ff;
+  --panel:rgba(16,6,34,.80); --border:rgba(255,43,214,.38); --chip:rgba(0,240,255,.08); --chip-b:rgba(0,240,255,.35);
+  --mark:rgba(255,43,214,.22); --head:'Orbitron',sans-serif; --body:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;
+  --glow:0 0 32px rgba(255,43,214,.25); --radius:14px; --label-shadow:0 0 14px rgba(0,0,0,.9);
+}
+body[data-theme="space"] {
+  --bg:#02030a; --fg:#eef2ff; --muted:#9aa4c7; --accent:#ffcf70; --accent2:#6ec6ff;
+  --panel:rgba(8,12,30,.76); --border:rgba(110,198,255,.32); --chip:rgba(110,198,255,.08); --chip-b:rgba(110,198,255,.32);
+  --mark:rgba(255,207,112,.2); --head:'Space Grotesk',sans-serif; --body:'Space Grotesk',sans-serif;
+  --glow:0 0 40px rgba(110,198,255,.18); --radius:20px;
+}
+body[data-theme="matrix"] {
+  --bg:#000; --fg:#c8ffd9; --muted:#4fbf7a; --accent:#00ff66; --accent2:#b4ffcf;
+  --panel:rgba(0,12,4,.88); --border:rgba(0,255,102,.4); --chip:rgba(0,255,102,.07); --chip-b:rgba(0,255,102,.35);
+  --mark:rgba(0,255,102,.2); --head:'JetBrains Mono',monospace; --body:'JetBrains Mono',monospace;
+  --glow:0 0 30px rgba(0,255,102,.2); --radius:2px;
+}
+body[data-theme="blueprint"] {
+  --bg:#0d3a75; --fg:#f2f7ff; --muted:#a9c4ea; --accent:#ffd166; --accent2:#ffffff;
+  --panel:rgba(10,46,98,.9); --border:rgba(255,255,255,.45); --chip:rgba(255,255,255,.06); --chip-b:rgba(255,255,255,.4);
+  --mark:rgba(255,209,102,.22); --head:'JetBrains Mono',monospace; --body:'Inter',sans-serif;
+  --glow:none; --radius:0px; --label-shadow:none;
+}
+body[data-theme="paper"] {
+  --bg:#f2ede3; --fg:#1d1d1f; --muted:#6b665c; --accent:#e4572e; --accent2:#2e86ab;
+  --panel:rgba(255,252,246,.94); --border:rgba(29,29,31,.14); --chip:rgba(46,134,171,.08); --chip-b:rgba(46,134,171,.3);
+  --mark:rgba(243,167,18,.28); --head:'Fraunces',serif; --body:'Inter',sans-serif;
+  --glow:0 18px 50px rgba(29,29,31,.12); --radius:16px; --label-shadow:none;
+}
+
+/* ───────────── Base ───────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;transition:background .4s}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none}
+
+/* ───────────── Node labels (CSS2D) ───────────── */
+.nl{pointer-events:none}
+.nl-in{pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 10px;border-radius:10px;border:1px solid transparent;transition:opacity .35s,background .2s,border-color .2s,transform .2s;user-select:none;white-space:nowrap}
+.nl-n{font:600 10px var(--mono);color:var(--accent2);letter-spacing:.18em}
+.nl-t{font:700 14px var(--head);color:var(--fg);letter-spacing:.07em;text-transform:uppercase;text-shadow:var(--label-shadow)}
+.nl-p{font:500 10px var(--mono);color:var(--muted);text-shadow:var(--label-shadow)}
+.nl-core .nl-t{font-size:19px;letter-spacing:.12em}
+.nl.hover .nl-in,.nl-in:hover{background:var(--panel);border-color:var(--border);transform:scale(1.06)}
+body.focused .nl .nl-in{opacity:.28}
+body.focused .nl.active .nl-in{opacity:1}
+body[data-theme="blueprint"] .nl-in{border:1px dashed rgba(255,255,255,.45);border-radius:0}
+.sat{font:600 10px var(--mono);color:var(--fg);background:var(--panel);border:1px solid var(--border);padding:2px 6px;border-radius:6px;white-space:nowrap;pointer-events:none;transform:translateY(-14px)}
+
+/* ───────────── HUD ───────────── */
+.hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:18px 22px;pointer-events:none;z-index:5;gap:12px}
+.hud > *{pointer-events:auto}
+.brand .name{font:800 22px var(--head);letter-spacing:.06em;text-transform:uppercase;color:var(--fg)}
+body[data-theme="paper"] .brand .name{text-transform:none;letter-spacing:0;font-size:26px}
+.brand .role{font:500 13px var(--mono);color:var(--muted);margin-top:3px}
+.status{display:flex;align-items:center;gap:7px;font:500 11px var(--mono);color:var(--accent2);margin-top:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border:1px solid var(--border);background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:calc(var(--radius) * .7);font:600 12px var(--mono);text-decoration:none;color:var(--fg);transition:border-color .2s,transform .15s,box-shadow .2s}
+.btn:hover{border-color:var(--accent);box-shadow:var(--glow);transform:translateY(-1px)}
+.btn .ic{color:var(--accent)}
+
+/* ───────────── Section nav ───────────── */
+#nav{position:fixed;left:22px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:5}
+#nav button{display:flex;align-items:center;gap:10px;padding:7px 12px 7px 10px;border-radius:10px;font:500 12px var(--mono);color:var(--muted);text-align:left;border:1px solid transparent;transition:all .2s}
+#nav button .i{font-size:10px;opacity:.6;width:16px}
+#nav button .m{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;background:var(--chip);color:var(--accent2);border:1px solid var(--chip-b)}
+#nav button .m.post{color:var(--accent);border-color:var(--accent)}
+#nav button:hover,#nav button.on{color:var(--fg);background:var(--panel);border-color:var(--border)}
+#nav button.on .p{color:var(--accent)}
+
+/* ───────────── Theme dock ───────────── */
+#dock{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:5px;background:var(--panel);border:1px solid var(--border);border-radius:999px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:6;box-shadow:var(--glow);max-width:calc(100vw - 24px)}
+.dock-label{font:700 10px var(--mono);letter-spacing:.2em;color:var(--muted);padding:0 8px 0 10px}
+#dock button{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 6px;border-radius:999px;font:600 12px var(--body);color:var(--muted);transition:all .2s;white-space:nowrap}
+#dock button .sw{width:22px;height:22px;border-radius:50%;border:1px solid rgba(128,128,128,.4);flex:none}
+#dock button:hover{color:var(--fg)}
+#dock button[aria-checked="true"]{background:var(--chip);color:var(--fg);box-shadow:inset 0 0 0 1px var(--chip-b)}
+
+.hint{position:fixed;left:22px;bottom:24px;font:500 11px var(--mono);color:var(--muted);line-height:1.7;z-index:4;transition:opacity .6s}
+.hint kbd{font:inherit;padding:1px 6px;border:1px solid var(--border);border-radius:4px;color:var(--fg)}
+.hint.gone{opacity:0;pointer-events:none}
+
+/* ───────────── Panel ───────────── */
+#panel{position:fixed;top:84px;right:20px;bottom:84px;width:min(540px,44vw);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--glow);z-index:8;transform:translateX(calc(100% + 40px));transition:transform .6s cubic-bezier(.2,.9,.2,1);overflow:hidden}
+#panel.open{transform:none}
+.p-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);font:500 12px var(--mono)}
+.req{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.method{font-weight:700;font-size:11px;padding:3px 7px;border-radius:5px;background:var(--chip);color:var(--accent2);border:1px solid var(--chip-b)}
+.method.post{color:var(--accent);border-color:var(--accent)}
+.path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resp{display:flex;gap:10px;color:var(--muted);font-size:11px;white-space:nowrap}
+.code{color:#2bd47d;font-weight:700}
+.code.pending{color:var(--accent)}
+.close{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--border);flex:none}
+.close:hover{border-color:var(--accent);color:var(--accent)}
+.p-tabs{display:flex;gap:4px;padding:8px 14px 0}
+.p-tabs button{font:600 11px var(--mono);padding:6px 12px;border-radius:8px 8px 0 0;color:var(--muted);border-bottom:2px solid transparent}
+.p-tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
+.p-body{flex:1;overflow:auto;padding:20px 22px 26px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.p-title{font:700 28px var(--head);letter-spacing:.03em;margin-bottom:14px;text-transform:uppercase}
+body[data-theme="paper"] .p-title{text-transform:none;font-size:34px}
+.p-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--border);font:500 11px var(--mono);color:var(--muted)}
+.p-foot button{padding:6px 10px;border-radius:8px;border:1px solid var(--border);color:var(--fg)}
+.p-foot button:hover{border-color:var(--accent)}
+.p-content{animation:fadeUp .45s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}}
+
+/* content blocks */
+.p-content h3{font:700 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+.lead{font-size:15px;line-height:1.7}
+mark{background:var(--mark);color:inherit;padding:0 3px;border-radius:3px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+.stat{padding:14px;border:1px solid var(--border);border-radius:calc(var(--radius)*.7);background:var(--chip)}
+.stat b{display:block;font:700 26px var(--head);color:var(--accent)}
+.stat b small{font-size:13px;color:var(--muted);margin-left:2px}
+.stat span{font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 12px var(--mono);padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--chip-b);transition:all .2s}
+.chip:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+body[data-theme="blueprint"] .chip,body[data-theme="matrix"] .chip{border-radius:2px}
+.chips.sm .chip{font-size:11px;padding:3px 8px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.skcat{margin-bottom:16px}
+.skh{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;font:600 14px var(--body)}
+.skh .idx{font:600 10px var(--mono);color:var(--accent)}
+.skh .cnt{margin-left:auto;font:500 10px var(--mono);color:var(--muted)}
+.tl{position:relative;padding-left:22px}
+.tl:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:linear-gradient(var(--accent),var(--accent2),transparent)}
+.tl-item{position:relative;margin-bottom:26px}
+.tl-item:before{content:"";position:absolute;left:-22px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--bg);border:2px solid var(--accent);box-shadow:0 0 12px var(--accent)}
+.tl-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.co{font:700 17px var(--head)}
+.ro{font-size:13px;color:var(--muted);margin-top:2px}
+.pe{font:600 11px var(--mono);color:var(--accent2);white-space:nowrap;text-align:right}
+details.sub{margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:calc(var(--radius)*.7);background:var(--chip)}
+details.sub summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.sub summary::-webkit-details-marker{display:none}
+details.sub summary:after{content:"+";font-family:var(--mono);color:var(--accent)}
+details.sub[open] summary:after{content:"–"}
+details.sub .chips{margin:10px 0 4px}
+.bul{list-style:none;margin-top:8px}
+.bul li{position:relative;padding-left:16px;font-size:13.5px;line-height:1.6;margin:6px 0}
+.bul li:before{content:"▸";position:absolute;left:0;color:var(--accent);font-size:11px;top:2px}
+.card{padding:16px;border:1px solid var(--border);border-radius:calc(var(--radius)*.8);background:var(--chip);margin-bottom:14px}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.card-h h4{font:700 16px var(--head)}
+.edu{display:flex;gap:16px;align-items:center}
+.ring{flex:none;position:relative;width:78px;height:78px}
+.ring svg{transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:grid;place-items:center;font:700 14px var(--mono);color:var(--accent)}
+.ring .trk{stroke:var(--border)}
+.ring .bar{stroke:var(--accent);transition:stroke-dashoffset 1.2s cubic-bezier(.2,.9,.2,1)}
+.edu .meta{font-size:13px;color:var(--muted);margin-top:3px}
+.edu .yr{font:600 11px var(--mono);color:var(--accent2);margin-top:6px}
+.ach{display:flex;gap:14px;align-items:flex-start}
+.ach .glyph{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;background:var(--bg);border:1px solid var(--border);color:var(--accent)}
+.ach h4{font:700 15px var(--head);margin-bottom:3px}
+.ach p{font-size:13px;line-height:1.55;color:var(--fg);opacity:.9}
+.ach .when{font:500 11px var(--mono);color:var(--muted);margin-top:4px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cbox{display:block;padding:14px;border:1px solid var(--border);border-radius:calc(var(--radius)*.7);background:var(--chip);text-decoration:none;transition:all .2s;min-width:0}
+.cbox:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--glow)}
+.cbox small{display:block;font:600 10px var(--mono);letter-spacing:.15em;color:var(--muted);text-transform:uppercase}
+.cbox span{display:block;font-size:13px;margin-top:5px;overflow-wrap:anywhere}
+form.req-form{margin-top:8px;border:1px solid var(--border);border-radius:calc(var(--radius)*.7);overflow:hidden;font-family:var(--mono)}
+.rf-h{padding:9px 12px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);background:var(--chip)}
+.rf-b{padding:12px;display:grid;gap:8px;font-size:12px}
+.rf-b label{color:var(--accent2)}
+.rf-b input,.rf-b textarea{width:100%;font:inherit;color:var(--fg);background:transparent;border:1px solid var(--border);border-radius:6px;padding:8px 10px;resize:vertical}
+.rf-b input:focus,.rf-b textarea:focus{outline:none;border-color:var(--accent)}
+.rf-b button{justify-self:start;padding:8px 14px;border-radius:6px;background:var(--accent);color:var(--bg);font-weight:700}
+pre.json{font:12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word}
+.jk{color:var(--accent2)} .js{color:var(--fg);opacity:.85} .jn{color:var(--accent)} .jb{color:var(--accent)}
+.resp-out{margin-top:10px}
+
+/* ───────────── Terminal ───────────── */
+#term{position:fixed;left:50%;bottom:0;width:min(780px,96vw);height:min(48vh,440px);transform:translate(-50%,105%);transition:transform .45s cubic-bezier(.2,.9,.2,1);z-index:20;display:flex;flex-direction:column;background:rgba(4,6,8,.94);border:1px solid rgba(255,255,255,.14);border-bottom:0;border-radius:12px 12px 0 0;font:13px/1.55 'JetBrains Mono',monospace;color:#d6e2ea;box-shadow:0 -20px 60px rgba(0,0,0,.4)}
+#term.open{transform:translate(-50%,0)}
+.t-bar{display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;color:#7b8a96}
+.t-bar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.t-bar .tt{margin-left:8px;flex:1}
+.t-bar button{color:#7b8a96;font-size:12px}
+#termOut{flex:1;overflow:auto;padding:10px 14px;white-space:pre-wrap;word-break:break-word}
+.t-row{display:flex;gap:8px;padding:8px 14px 12px;border-top:1px solid rgba(255,255,255,.06)}
+.t-ps{color:#4ade80;white-space:nowrap}
+.t-ps b{color:#60a5fa;font-weight:500}
+#termIn{flex:1;background:none;border:0;color:#fff;font:inherit;outline:none;caret-color:#4ade80}
+.tc-a{color:#4ade80}.tc-b{color:#60a5fa}.tc-m{color:#7b8a96}.tc-y{color:#facc15}.tc-p{color:#f472b6}.tc-e{color:#f87171}
+#termOut a{color:#60a5fa}
+#term .jk{color:#60a5fa} #term .js{color:#d6e2ea;opacity:1} #term .jn,#term .jb{color:#facc15}
+
+/* ───────────── Classic view ───────────── */
+#classic{position:fixed;inset:0;z-index:30;background:rgba(10,10,12,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow:auto;display:none}
+#classic.open{display:block}
+.c-bar{position:sticky;top:0;display:flex;justify-content:center;gap:8px;padding:12px;z-index:2}
+.c-bar .btn{background:#fff;color:#111;border-color:#ddd}
+.c-bar .btn .ic{color:#e4572e}
+.sheet{max-width:860px;margin:0 auto 60px;background:#fff;color:#1a1a1a;padding:56px 60px;font:14px/1.55 'Inter',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.3);border-radius:4px}
+.sheet h1{font:700 34px 'Fraunces',serif;letter-spacing:-.01em}
+.sheet .sub{color:#555;margin-top:4px}
+.sheet .ct{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:13px}
+.sheet .ct a{color:#2e5fa7;text-decoration:none}
+.sheet h2{font:600 13px 'Inter',sans-serif;letter-spacing:.16em;text-transform:uppercase;border-bottom:1.5px solid #1a1a1a;padding-bottom:4px;margin:24px 0 10px}
+.sheet .row{display:flex;justify-content:space-between;gap:12px}
+.sheet .row b{font-weight:600}
+.sheet .row i{color:#555;white-space:nowrap}
+.sheet ul{margin:4px 0 8px 18px}
+.sheet li{margin:3px 0}
+.sheet .st{margin-top:10px}
+.sheet .st > div:first-child{font-weight:600}
+.sheet .tools{font-style:italic;color:#555;font-size:12.5px}
+.sheet p{margin:4px 0}
+
+/* ───────────── Boot ───────────── */
+#boot{position:fixed;inset:0;z-index:50;background:#000;color:#4ade80;font:13px/1.8 'JetBrains Mono',monospace;padding:clamp(20px,6vw,70px);transition:opacity .7s;cursor:pointer}
+#boot.gone{opacity:0;pointer-events:none}
+#boot .ok{color:#4ade80}#boot .dim{color:#5b6b63}#boot .hi{color:#fff}
+#boot .skip{position:absolute;right:24px;bottom:20px;color:#5b6b63;font-size:11px}
+.caret{display:inline-block;width:8px;height:15px;background:#4ade80;vertical-align:-2px;animation:pulse 1s steps(1) infinite}
+
+#warp{position:fixed;inset:0;z-index:15;pointer-events:none;opacity:0;transition:opacity .22s}
+#warp.on{opacity:1}
+.toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-80px);z-index:40;padding:9px 16px;border-radius:999px;background:var(--panel);border:1px solid var(--border);font:600 12px var(--mono);transition:transform .4s cubic-bezier(.2,.9,.2,1);backdrop-filter:blur(10px)}
+.toast.show{transform:translate(-50%,0)}
+
+/* ───────────── Mobile ───────────── */
+@media (max-width:760px){
+  .hud{padding:14px 16px}
+  .brand .name{font-size:17px}
+  body[data-theme="paper"] .brand .name{font-size:20px}
+  .brand .role{font-size:11px}
+  .status{display:none}
+  .btn{height:34px;padding:0 10px}
+  .btn .tx{display:none}
+  #nav{left:0;right:0;top:auto;bottom:66px;transform:none;flex-direction:row;overflow-x:auto;padding:0 16px;gap:6px;scrollbar-width:none}
+  #nav::-webkit-scrollbar{display:none}
+  #nav button{flex:none;background:var(--panel);border-color:var(--border);padding:6px 10px}
+  #nav button .i{display:none}
+  #dock{bottom:12px}
+  #dock .dock-label,#dock button span{display:none}
+  #dock button{padding:5px}
+  .hint{display:none}
+  #panel{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:64vh;transform:translateY(calc(100% + 20px))}
+  .p-title{font-size:22px}
+  body[data-theme="paper"] .p-title{font-size:26px}
+  .p-body{padding:16px 16px 22px}
+  .cgrid{grid-template-columns:1fr}
+  .nl-t{font-size:11px}.nl-core .nl-t{font-size:14px}.nl-p{display:none}
+  .sheet{padding:28px 20px;margin:0 8px 40px}
+  .sheet .row{flex-direction:column;gap:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+
+/* ───────────── Print → classic sheet only ───────────── */
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff}
+  body > *:not(#classic){display:none!important}
+  #classic{display:block!important;position:static;background:none;backdrop-filter:none;overflow:visible}
+  .c-bar{display:none}
+  .sheet{box-shadow:none;margin:0;padding:0;max-width:none}
+}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body data-theme="neon">
+
+<div id="stage" aria-hidden="true"></div>
+<div id="labels" aria-hidden="true"></div>
+
+<header class="hud">
+  <div class="brand">
+    <div class="name">Dhruv Aggarwal</div>
+    <div class="role">Backend Developer · Node.js</div>
+    <div class="status"><span class="dot"></span><span id="statusText">online · event-stream active</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="btnTerm" title="Open terminal (`)"><span class="ic">&gt;_</span><span class="tx">Terminal</span></button>
+    <button class="btn" id="btnClassic" title="Plain, printable resume"><span class="ic">¶</span><span class="tx">Classic view</span></button>
+    <a class="btn" href="DHRUV_RESUME.pdf" download title="Download PDF"><span class="ic">↓</span><span class="tx">PDF</span></a>
+  </div>
+</header>
+
+<nav id="nav" aria-label="Resume sections"></nav>
+
+<div class="hint" id="hint">
+  drag to orbit · scroll to zoom · click a node<br>
+  <kbd>1</kbd>–<kbd>7</kbd> sections · <kbd>T</kbd> theme · <kbd>`</kbd> terminal
+</div>
+
+<div id="dock" role="radiogroup" aria-label="Theme"><span class="dock-label">THEME</span></div>
+
+<aside id="panel" aria-hidden="true" aria-label="Section details">
+  <div class="p-head">
+    <div class="req"><span class="method">GET</span><span class="path">/api/v1/about</span></div>
+    <div class="resp"><span class="code">200 OK</span><span class="lat">23 ms</span></div>
+    <button class="close" id="pClose" aria-label="Close panel">✕</button>
+  </div>
+  <div class="p-tabs" role="tablist">
+    <button data-tab="preview" class="on" role="tab">Preview</button>
+    <button data-tab="json" role="tab">JSON</button>
+  </div>
+  <div class="p-body" id="pBody">
+    <h2 class="p-title" id="pTitle"></h2>
+    <div class="p-content" id="pContent"></div>
+  </div>
+  <div class="p-foot">
+    <button id="pPrev">← prev</button><span id="pPos">1 / 7</span><button id="pNext">next →</button>
+  </div>
+</aside>
+
+<section id="term" aria-label="Terminal">
+  <div class="t-bar"><i style="background:#f87171"></i><i style="background:#facc15"></i><i style="background:#4ade80"></i><span class="tt">visitor@dhruv: ~ — zsh</span><button id="tClose" aria-label="Close terminal">✕</button></div>
+  <div id="termOut"></div>
+  <div class="t-row"><span class="t-ps">visitor@dhruv<b>:~$</b></span><input id="termIn" autocomplete="off" spellcheck="false" aria-label="Terminal input"></div>
+</section>
+
+<div id="classic" aria-label="Classic resume">
+  <div class="c-bar">
+    <button class="btn" id="cPrint"><span class="ic">⎙</span><span class="tx">Print / Save as PDF</span></button>
+    <a class="btn" href="DHRUV_RESUME.pdf" download><span class="ic">↓</span><span class="tx">Original PDF</span></a>
+    <button class="btn" id="cClose"><span class="ic">✕</span><span class="tx">Back to 3D</span></button>
+  </div>
+  <article class="sheet" id="sheet"></article>
+</div>
+
+<div id="boot"><div id="bootLog"></div><div class="skip">click or press any key to skip</div></div>
+<div id="warp"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ═════════════ Data + UI (works even if WebGL is unavailable) ═════════════ -->
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ───────── Resume data ───────── */
+const RESUME = {
+  name: 'Dhruv Aggarwal',
+  role: 'Backend Developer (Node.js)',
+  degree: 'B.E., Electronics and Computer Engineering',
+  school: 'Thapar Institute of Engineering and Technology, Patiala',
+  contact: {
+    email: 'aggarwalkrishna289@gmail.com',
+    phone: '+91-6284035848',
+    linkedin: 'https://www.linkedin.com/in/dhruv-aggarwal-6b8046225/',
+    github: 'https://github.com/dhruv-aggarwal92'
+  },
+  summary: 'Backend Developer with hands-on experience building scalable, event-driven Node.js services for payments, donations and healthcare platforms. Strong in REST API design, secure webhook processing (signature validation, idempotency), multi-method authentication with RBAC, MongoDB optimization, caching with Redis, and asynchronous messaging with Kafka. Comfortable deploying and operating services on AWS, with a focus on reliability, security and performance.',
+  focus: ['Payments & Webhooks', 'Event-Driven · Kafka', 'Auth & RBAC', 'MongoDB Performance', 'Redis Caching', 'AWS Operations'],
+  skills: [
+    { cat: 'Languages', items: ['JavaScript (ES6+)', 'TypeScript', 'Go (Golang)', 'Python', 'C++', 'SQL'] },
+    { cat: 'Backend', items: ['Node.js', 'Express.js', 'RESTful APIs', 'Microservices', 'Event-Driven Architecture', 'WebSockets', 'Multer'] },
+    { cat: 'Messaging & Caching', items: ['Apache Kafka', 'Redis', 'Cron / Background Jobs'] },
+    { cat: 'Databases', items: ['MongoDB (Aggregation Pipelines, Indexing, Transactions)', 'MsSQL', 'PostgreSQL / MySQL'] },
+    { cat: 'Cloud & DevOps', items: ['AWS EC2', 'S3', 'Lambda', 'SQS / SNS', 'CloudWatch', 'IAM', 'Docker', 'CI/CD', 'Azure DevOps', 'Linux (Ubuntu)'] },
+    { cat: 'Security & Auth', items: ['JWT', 'OAuth 2.0 (Google)', 'OTP Login', 'RBAC', 'Webhook Signature Verification', 'Rate Limiting'] },
+    { cat: 'Integrations', items: ['Stripe', 'Razorpay', 'Mailchimp', 'Push Notifications'] },
+    { cat: 'Tools & Testing', items: ['Git', 'GitHub', 'Bitbucket', 'Postman', 'Swagger / OpenAPI', 'Jest'] },
+    { cat: 'Data & Analysis', items: ['Tableau', 'Excel', 'Web Scraping', 'Machine Learning'] }
+  ],
+  experience: [
+    {
+      company: 'Unthinkable Solutions LLP', role: 'Backend Developer', period: '1.5 Years',
+      projects: [
+        {
+          name: 'Healthcare & Wellness Application',
+          stack: ['Node.js', 'Express.js', 'MongoDB', 'Redis', 'Kafka', 'AWS', 'Stripe', 'Mailchimp'],
+          points: [
+            'Designed and developed scalable RESTful APIs with Node.js and Express for donation initiation, payment status tracking, reporting and analytics on a dance-based wellness platform for children aged 5–12.',
+            'Implemented secure Stripe webhook handlers with signature verification, retry handling and idempotency checks for reliable payment event processing.',
+            'Built an event-driven pipeline using Apache Kafka to decouple payment events from downstream tasks (notifications, emails, reporting) for reliable, retry-safe processing.',
+            'Implemented Redis caching to speed up API responses and reduce MongoDB load.',
+            'Developed hourly cron jobs for allocation algorithms, ensuring accurate, automated fund distribution.',
+            'Executed multi-stage, transactional database migrations with rollback support, consolidating schemas into a single-profile architecture.',
+            'Built multi-method authentication (OTP, password, Google OAuth) and an RBAC system for Super Admin and Sub Admin roles.',
+            'Handled media and file uploads with Multer and stored assets in AWS S3.',
+            'Deployed and monitored services on AWS (EC2, CloudWatch) with Dockerized builds and CI/CD pipelines.',
+            'Integrated Mailchimp for donation confirmations, summary reports and failure notifications; added push notifications for reminders, streak updates and transactional alerts.',
+            'Designed a streak-tracking and rewards system to drive consistent user engagement.',
+            'Optimized MongoDB queries and aggregation pipelines through indexing and query refactoring, improving performance and scalability.'
+          ]
+        },
+        {
+          name: 'Hospital Management & Inventory Platform',
+          stack: ['Node.js', 'MsSQL'],
+          points: [
+            'Contributed to a multi-role platform (Admins, Tenants, Customers, Vendors, Technicians) covering work-order assignment, equipment tracking and inventory.',
+            'Refactored complex promise chains and callback hell into structured async/await flows with centralized error handling, improving readability and debuggability.',
+            'Implemented audit logging to track critical user activity and system operations for accountability and traceability.',
+            'Fixed data-integrity issues in MsSQL, including undefined entries and invalid records.'
+          ]
+        }
+      ]
+    },
+    {
+      company: 'Muskan NGO', role: 'Web Development Intern · Remote', period: 'Jan 2024 – Feb 2024',
+      points: [
+        'Enhanced the NGO website by improving existing pages and adding donation and policy pages.',
+        'Integrated a secure payment gateway for online donations and used EmailJS for direct user-to-organization communication.'
+      ]
+    }
+  ],
+  projects: [
+    {
+      name: 'Social Media Platform',
+      stack: ['Node.js', 'Express.js', 'MongoDB', 'Socket.IO', 'Redis', 'AWS S3'],
+      link: 'https://github.com/dhruv-aggarwal92/majorproj',
+      points: [
+        'Implemented Google OAuth sign-in with secure session handling for seamless Login/Sign-Up.',
+        'Designed a multimedia post system (images, videos, blogs) with cloud object storage on AWS S3.',
+        'Built likes, comments, dual-acceptance friend requests and a real-time public chat engine over WebSockets.',
+        'Used Redis to cache frequently accessed feeds and profile data.'
+      ]
+    },
+    {
+      name: 'Polycystic Ovary Syndrome Classification',
+      stack: ['Python', 'TensorFlow', 'PyTorch', 'Node.js', 'Express.js', 'MongoDB'],
+      points: [
+        'Developed an image classification system for diagnosing PCOS, comparing VGG16 (TensorFlow) and Vision Transformer (PyTorch) models to improve accuracy.',
+        'Deployed a public-facing platform integrating the ML models with a Node.js backend to deliver personalized insights to users.'
+      ]
+    }
+  ],
+  education: [
+    { school: 'Thapar Institute of Engineering and Technology, Patiala', degree: 'B.E., Electronics and Computer Engineering', period: '2021 – 2025', score: 'CGPA 9.03', value: 9.03, max: 10, show: '9.03' },
+    { school: 'Tara Convent School, Malerkotla', degree: 'Senior Secondary', period: '2021', score: '89%', value: 89, max: 100, show: '89%' },
+    { school: 'Tara Convent School, Malerkotla', degree: 'Secondary', period: '2019', score: '88%', value: 88, max: 100, show: '88%' }
+  ],
+  achievements: [
+    { glyph: '★', title: 'Merit Scholarship', text: 'Thapar Institute Merit Scholarship for three years — top 10% of students by academic merit.' },
+    { glyph: '◆', title: 'GeeksForGeeks', text: 'Complete Machine Learning & Data Science Program', date: 'Sep 2023', link: 'https://media.geeksforgeeks.org/courses/certificates/58ef50e3145ba68dc1561b83cc7c1dbc.pdf' },
+    { glyph: '●', title: 'TCS iON', text: 'Communication Skills and Soft Skills', date: 'Jan 2024', link: 'https://www.linkedin.com/in/dhruv-aggarwal-6b8046225/overlay/1705347463963/single-media-viewer/?profileId=ACoAADhswGwBJgQ2v6BZxigCTeQ61SzftyZzWnY' },
+    { glyph: '▲', title: 'Event Manager, Saturnalia', text: 'Led the technical competition at the institute’s flagship fest and authored the coding challenges.' }
+  ]
+};
+
+const SECTIONS = [
+  { id: 'about',        title: 'About',        method: 'GET',  path: '/about' },
+  { id: 'skills',       title: 'Skills',       method: 'GET',  path: '/skills' },
+  { id: 'experience',   title: 'Experience',   method: 'GET',  path: '/experience' },
+  { id: 'projects',     title: 'Projects',     method: 'GET',  path: '/projects' },
+  { id: 'education',    title: 'Education',    method: 'GET',  path: '/education' },
+  { id: 'achievements', title: 'Achievements', method: 'GET',  path: '/achievements' },
+  { id: 'contact',      title: 'Contact',      method: 'POST', path: '/contact' }
+];
+
+const THEMES = [
+  { id: 'neon',      label: 'Neon Grid',  bg: '#07020f', sw: 'linear-gradient(135deg,#ff2bd6,#8a5cff 50%,#00f0ff)' },
+  { id: 'space',     label: 'Deep Space', bg: '#02030a', sw: 'radial-gradient(circle at 32% 30%,#ffcf70,#ff6f91 30%,#3b1f6e 62%,#02030a)' },
+  { id: 'matrix',    label: 'Matrix',     bg: '#000000', sw: 'repeating-linear-gradient(90deg,#00ff66 0 2px,#002a10 2px 5px)' },
+  { id: 'blueprint', label: 'Blueprint',  bg: '#0d3a75', sw: 'repeating-linear-gradient(0deg,#ffffff55 0 1px,transparent 1px 5px),repeating-linear-gradient(90deg,#ffffff55 0 1px,#0d3a75 1px 5px)' },
+  { id: 'paper',     label: 'Paper',      bg: '#f2ede3', sw: 'linear-gradient(135deg,#f2ede3 50%,#e4572e 50%)' }
+];
+
+/* ───────── Helpers ───────── */
+const KEYS = ['Apache Kafka','Kafka','Redis','MongoDB','Stripe','AWS S3','AWS','RBAC','Google OAuth','idempotency','signature verification','cron jobs','Docker','CI/CD','Mailchimp','async/await','MsSQL','audit logging','EC2','CloudWatch','Multer','WebSockets','VGG16','Vision Transformer','EmailJS','payment gateway','rollback','RESTful APIs','aggregation pipelines'];
+const KEY_RE = new RegExp('(' + KEYS.sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&')).join('|') + ')', 'g');
+const hl = s => esc(s).replace(KEY_RE, '<mark>$1</mark>');
+const chips = (arr, cls = '') => `<div class="chips ${cls}">${arr.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>`;
+const bullets = arr => `<ul class="bul">${arr.map(p => `<li>${hl(p)}</li>`).join('')}</ul>`;
+const ext = (href, text) => `<a class="btn" href="${esc(href)}" target="_blank" rel="noopener"><span class="ic">↗</span>${esc(text)}</a>`;
+const ring = (value, max, show) => {
+  const r = 32, c = 2 * Math.PI * r, off = c * (1 - value / max);
+  return `<div class="ring"><svg width="78" height="78" viewBox="0 0 78 78"><circle class="trk" cx="39" cy="39" r="${r}" fill="none" stroke-width="5"/><circle class="bar" cx="39" cy="39" r="${r}" fill="none" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${c.toFixed(1)}" data-off="${off.toFixed(1)}"/></svg><div class="v">${esc(show)}</div></div>`;
+};
+
+function sectionData(id) {
+  const R = RESUME;
+  return {
+    about: { name: R.name, role: R.role, education: `${R.degree}, ${R.school}`, summary: R.summary, focus: R.focus },
+    skills: Object.fromEntries(R.skills.map(s => [s.cat, s.items])),
+    experience: R.experience,
+    projects: R.projects,
+    education: R.education.map(({ show, value, max, ...e }) => e),
+    achievements: R.achievements.map(({ glyph, ...a }) => a),
+    contact: R.contact
+  }[id];
+}
+
+/* ───────── Panel renderers ───────── */
+const RENDER = {
+  about: () => {
+    const R = RESUME;
+    return `<p class="lead">${hl(R.summary)}</p>
+    <div class="stats">
+      <div class="stat"><b>1.5<small>yrs</small></b><span>Backend engineering in production</span></div>
+      <div class="stat"><b>9.03<small>/10</small></b><span>CGPA · Thapar Institute</span></div>
+      <div class="stat"><b>Top 10%</b><span>Merit scholar, three years running</span></div>
+      <div class="stat"><b>6</b><span>Languages · JS, TS, Go, Python, C++, SQL</span></div>
+    </div>
+    <h3>Focus areas</h3>${chips(R.focus)}
+    <h3>Elsewhere</h3>
+    <div class="links">${ext(R.contact.github, 'GitHub')}${ext(R.contact.linkedin, 'LinkedIn')}<a class="btn" href="mailto:${esc(R.contact.email)}"><span class="ic">@</span>Email</a></div>`;
+  },
+  skills: () => RESUME.skills.map((s, i) => `<div class="skcat"><div class="skh"><span class="idx">${String(i + 1).padStart(2, '0')}</span>${esc(s.cat)}<span class="cnt">${s.items.length} items</span></div>${chips(s.items)}</div>`).join(''),
+  experience: () => `<div class="tl">${RESUME.experience.map(job => `
+    <div class="tl-item">
+      <div class="tl-head"><div><div class="co">${esc(job.company)}</div><div class="ro">${esc(job.role)}</div></div><div class="pe">${esc(job.period)}</div></div>
+      ${job.projects ? job.projects.map(p => `<details class="sub" open><summary>${esc(p.name)}</summary>${chips(p.stack, 'sm')}${bullets(p.points)}</details>`).join('') : bullets(job.points)}
+    </div>`).join('')}</div>`,
+  projects: () => RESUME.projects.map(p => `
+    <div class="card">
+      <div class="card-h"><h4>${esc(p.name)}</h4>${p.link ? ext(p.link, 'Repo') : ''}</div>
+      ${chips(p.stack, 'sm')}${bullets(p.points)}
+    </div>`).join(''),
+  education: () => RESUME.education.map(e => `
+    <div class="card edu">${ring(e.value, e.max, e.show)}
+      <div><h4 style="font:700 15px var(--head)">${esc(e.school)}</h4><div class="meta">${esc(e.degree)}</div><div class="yr">${esc(e.period)} · ${esc(e.score)}</div></div>
+    </div>`).join(''),
+  achievements: () => RESUME.achievements.map(a => `
+    <div class="card ach"><div class="glyph">${a.glyph}</div><div>
+      <h4>${esc(a.title)}</h4><p>${a.link ? `<a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.text)}</a>` : esc(a.text)}</p>${a.date ? `<div class="when">${esc(a.date)}</div>` : ''}
+    </div></div>`).join(''),
+  contact: () => {
+    const c = RESUME.contact;
+    return `<p class="lead">Open to backend roles where reliability, payments and event-driven systems matter. Fastest path: email.</p>
+    <h3>Endpoints</h3>
+    <div class="cgrid">
+      <a class="cbox" href="mailto:${esc(c.email)}"><small>Email</small><span>${esc(c.email)}</span></a>
+      <a class="cbox" href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}"><small>Phone</small><span>${esc(c.phone)}</span></a>
+      <a class="cbox" href="${esc(c.linkedin)}" target="_blank" rel="noopener"><small>LinkedIn</small><span>dhruv-aggarwal-6b8046225</span></a>
+      <a class="cbox" href="${esc(c.github)}" target="_blank" rel="noopener"><small>GitHub</small><span>dhruv-aggarwal92</span></a>
+    </div>
+    <h3>Send a request</h3>
+    <form class="req-form" id="contactForm">
+      <div class="rf-h">POST /api/v1/contact · Content-Type: application/json</div>
+      <div class="rf-b">
+        <label for="cfName">"name":</label><input id="cfName" required placeholder="Your name">
+        <label for="cfMsg">"message":</label><textarea id="cfMsg" rows="3" required placeholder="Hi Dhruv, we'd love to talk about…"></textarea>
+        <button type="submit">Send ⏎</button>
+      </div>
+    </form>
+    <div class="resp-out" id="respOut"></div>`;
+  }
+};
+
+/* ───────── Plain-text renderers (terminal) ───────── */
+const TEXT = {
+  about: () => [`<span class="tc-y">${esc(RESUME.name)}</span> — ${esc(RESUME.role)}`, esc(RESUME.summary), `<span class="tc-m">focus:</span> ${RESUME.focus.map(esc).join(' · ')}`],
+  skills: () => RESUME.skills.map(s => `<span class="tc-b">${esc(s.cat.padEnd(20))}</span>${s.items.map(esc).join(', ')}`),
+  experience: () => RESUME.experience.flatMap(j => [`<span class="tc-y">${esc(j.company)}</span> · ${esc(j.role)} <span class="tc-m">(${esc(j.period)})</span>`, ...(j.projects ? j.projects.flatMap(p => [`  <span class="tc-b">» ${esc(p.name)}</span>`, ...p.points.map(x => '    - ' + esc(x))]) : j.points.map(x => '  - ' + esc(x))), '']),
+  projects: () => RESUME.projects.flatMap(p => [`<span class="tc-y">${esc(p.name)}</span> <span class="tc-m">[${p.stack.map(esc).join(', ')}]</span>${p.link ? ` <a href="${esc(p.link)}" target="_blank" rel="noopener">repo</a>` : ''}`, ...p.points.map(x => '  - ' + esc(x)), '']),
+  education: () => RESUME.education.map(e => `<span class="tc-y">${esc(e.school)}</span> · ${esc(e.degree)} <span class="tc-m">${esc(e.period)}</span> <span class="tc-a">${esc(e.score)}</span>`),
+  achievements: () => RESUME.achievements.map(a => `<span class="tc-p">${a.glyph}</span> <span class="tc-y">${esc(a.title)}</span> — ${esc(a.text)}${a.date ? ` <span class="tc-m">(${esc(a.date)})</span>` : ''}`),
+  contact: () => { const c = RESUME.contact; return [`email    <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`, `phone    ${esc(c.phone)}`, `linkedin <a href="${esc(c.linkedin)}" target="_blank" rel="noopener">${esc(c.linkedin)}</a>`, `github   <a href="${esc(c.github)}" target="_blank" rel="noopener">${esc(c.github)}</a>`]; }
+};
+
+function jsonHTML(obj) {
+  return JSON.stringify(obj, null, 2).replace(/("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?/g, (m, str, colon, kw) => {
+    if (str) return `<span class="${colon ? 'jk' : 'js'}">${esc(str)}</span>${colon || ''}`;
+    return `<span class="${kw ? 'jb' : 'jn'}">${m}</span>`;
+  });
+}
+
+/* ───────── DOM refs ───────── */
+const body = document.body, panel = $('#panel'), pBody = $('#pBody'), pContent = $('#pContent');
+const nav = $('#nav'), dock = $('#dock');
+let current = null, tab = 'preview';
+
+nav.innerHTML = SECTIONS.map((s, i) => `<button data-id="${s.id}"><span class="i">${String(i + 1).padStart(2, '0')}</span><span class="m ${s.method === 'POST' ? 'post' : ''}">${s.method}</span><span class="p">${s.path}</span></button>`).join('');
+dock.insertAdjacentHTML('beforeend', THEMES.map(t => `<button role="radio" data-theme="${t.id}" aria-checked="false" title="${t.label} theme"><i class="sw" style="background:${t.sw}"></i><span>${t.label}</span></button>`).join(''));
+
+/* ───────── Sections ───────── */
+function renderContent() {
+  if (!current) return;
+  pContent.innerHTML = tab === 'json' ? `<pre class="json">${jsonHTML(sectionData(current))}</pre>` : RENDER[current]();
+  pContent.style.animation = 'none'; void pContent.offsetWidth; pContent.style.animation = '';
+  requestAnimationFrame(() => setTimeout(() => pContent.querySelectorAll('.ring .bar').forEach(b => b.style.strokeDashoffset = b.dataset.off), 60));
+}
+function openSection(id) {
+  const i = SECTIONS.findIndex(s => s.id === id);
+  if (i < 0) return;
+  const s = SECTIONS[i];
+  current = id;
+  const m = panel.querySelector('.method');
+  m.textContent = s.method; m.classList.toggle('post', s.method === 'POST');
+  panel.querySelector('.path').textContent = '/api/v1' + s.path;
+  const code = panel.querySelector('.code');
+  code.textContent = s.method === 'POST' ? 'AWAITING BODY' : '200 OK';
+  code.classList.toggle('pending', s.method === 'POST');
+  panel.querySelector('.lat').textContent = (8 + Math.floor(Math.random() * 34)) + ' ms';
+  $('#pTitle').textContent = s.title;
+  $('#pPos').textContent = `${i + 1} / ${SECTIONS.length}`;
+  renderContent();
+  pBody.scrollTop = 0;
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+  body.classList.add('focused');
+  nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+  try { history.replaceState(null, '', '#' + id); } catch (e) {}
+  window.Scene3D && window.Scene3D.focus(id);
+  dismissHint();
+}
+function closeSection() {
+  if (!current) return;
+  current = null;
+  panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true');
+  body.classList.remove('focused');
+  nav.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  window.Scene3D && window.Scene3D.home();
+}
+function step(d) {
+  const i = SECTIONS.findIndex(s => s.id === current);
+  openSection(SECTIONS[(i + d + SECTIONS.length) % SECTIONS.length].id);
+}
+
+nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) b.dataset.id === current ? closeSection() : openSection(b.dataset.id); });
+nav.addEventListener('mouseover', e => { const b = e.target.closest('button'); window.Scene3D && window.Scene3D.hover(b ? b.dataset.id : null); });
+nav.addEventListener('mouseleave', () => window.Scene3D && window.Scene3D.hover(null));
+$('#pClose').onclick = closeSection;
+$('#pPrev').onclick = () => step(-1);
+$('#pNext').onclick = () => step(1);
+panel.querySelector('.p-tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.tab;
+  panel.querySelectorAll('.p-tabs button').forEach(x => x.classList.toggle('on', x === b));
+  renderContent();
+});
+panel.addEventListener('submit', e => {
+  if (e.target.id !== 'contactForm') return;
+  e.preventDefault();
+  const name = $('#cfName').value.trim(), msg = $('#cfMsg').value.trim();
+  const href = `mailto:${RESUME.contact.email}?subject=${encodeURIComponent('Hello from ' + name)}&body=${encodeURIComponent(msg + '\n\n— ' + name)}`;
+  const code = panel.querySelector('.code');
+  code.textContent = '201 Created'; code.classList.remove('pending');
+  $('#respOut').innerHTML = `<pre class="json">${jsonHTML({ status: 201, message: 'Opening your mail client with the request body…', from: name })}</pre>`;
+  window.Scene3D && window.Scene3D.burst('contact');
+  setTimeout(() => { location.href = href; }, 500);
+});
+
+/* ───────── Themes ───────── */
+let theme = 'neon';
+try { const t = localStorage.getItem('dhruv-theme'); if (THEMES.some(x => x.id === t)) theme = t; } catch (e) {}
+const qTheme = new URLSearchParams(location.search).get('theme');
+if (THEMES.some(x => x.id === qTheme)) theme = qTheme;
+function paintDock() { dock.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.theme === theme))); }
+function setTheme(id, quiet) {
+  const t = THEMES.find(x => x.id === id); if (!t) return false;
+  theme = id;
+  try { localStorage.setItem('dhruv-theme', id); } catch (e) {}
+  paintDock();
+  const warp = $('#warp');
+  warp.style.background = `radial-gradient(circle at 50% 50%, transparent 0, ${t.bg} 70%)`;
+  if (quiet || reduceMotion) { body.dataset.theme = id; window.Scene3D && window.Scene3D.applyTheme(id); return true; }
+  warp.classList.add('on');
+  setTimeout(() => {
+    body.dataset.theme = id;
+    window.Scene3D && window.Scene3D.applyTheme(id, true);
+    warp.classList.remove('on');
+    toast(`theme → ${t.label}`);
+  }, 230);
+  return true;
+}
+function cycleTheme() { const i = THEMES.findIndex(t => t.id === theme); setTheme(THEMES[(i + 1) % THEMES.length].id); }
+dock.addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.theme !== theme) setTheme(b.dataset.theme); });
+body.dataset.theme = theme; paintDock();
+
+let toastT;
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 1600); }
+
+/* ───────── Hint ───────── */
+function dismissHint() { $('#hint').classList.add('gone'); }
+
+/* ───────── Classic view ───────── */
+function renderClassic() {
+  const R = RESUME, c = R.contact;
+  $('#sheet').innerHTML = `
+    <h1>${esc(R.name)}</h1>
+    <div class="sub">${esc(R.role)} · ${esc(R.degree)}, ${esc(R.school)}</div>
+    <div class="ct"><a href="mailto:${esc(c.email)}">${esc(c.email)}</a><span>${esc(c.phone)}</span><a href="${esc(c.linkedin)}">LinkedIn</a><a href="${esc(c.github)}">GitHub</a></div>
+    <h2>Summary</h2><p>${esc(R.summary)}</p>
+    <h2>Technical Skills</h2><ul>${R.skills.map(s => `<li><b>${esc(s.cat)}:</b> ${s.items.map(esc).join(', ')}</li>`).join('')}</ul>
+    <h2>Experience</h2>
+    ${R.experience.map(j => `<div class="st"><div class="row"><b>${esc(j.company)}</b><i>${esc(j.period)}</i></div><div class="tools">${esc(j.role)}</div>
+      ${j.projects ? j.projects.map(p => `<div class="st"><div>${esc(p.name)} <span class="tools">| ${p.stack.map(esc).join(', ')}</span></div><ul>${p.points.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join('') : `<ul>${j.points.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`}</div>`).join('')}
+    <h2>Projects</h2>
+    ${R.projects.map(p => `<div class="st"><div class="row"><b>${esc(p.name)}</b>${p.link ? `<a href="${esc(p.link)}" style="color:#2e5fa7">repo ↗</a>` : ''}</div><div class="tools">Tools: ${p.stack.map(esc).join(', ')}</div><ul>${p.points.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}
+    <h2>Education</h2>
+    ${R.education.map(e => `<div class="st"><div class="row"><b>${esc(e.school)}</b><i>${esc(e.period)}</i></div><div class="row"><span class="tools">${esc(e.degree)}</span><span>${esc(e.score)}</span></div></div>`).join('')}
+    <h2>Achievements & Certifications</h2>
+    <ul>${R.achievements.map(a => `<li><b>${esc(a.title)}:</b> ${esc(a.text)}${a.date ? ` <i style="color:#555">(${esc(a.date)})</i>` : ''}</li>`).join('')}</ul>`;
+}
+function openClassic() { renderClassic(); $('#classic').classList.add('open'); $('#classic').scrollTop = 0; }
+function closeClassic() { $('#classic').classList.remove('open'); }
+$('#btnClassic').onclick = openClassic;
+$('#cClose').onclick = closeClassic;
+$('#cPrint').onclick = () => { renderClassic(); window.print(); };
+window.addEventListener('beforeprint', renderClassic);
+
+/* ───────── Terminal ───────── */
+const term = $('#term'), tout = $('#termOut'), tin = $('#termIn');
+const hist = []; let hIdx = 0;
+const tprint = (html = '', cls = '') => { tout.insertAdjacentHTML('beforeend', `<div class="${cls}">${html || '&nbsp;'}</div>`); tout.scrollTop = tout.scrollHeight; };
+function banner() {
+  tprint(`<span class="tc-a">dhruv-os</span> v2.0.25 — interactive resume shell`);
+  tprint(`type <span class="tc-y">help</span> to list commands · <span class="tc-y">Tab</span> autocompletes · <span class="tc-y">↑/↓</span> history`);
+  tprint();
+}
+function openTerm() { term.classList.add('open'); if (!tout.childElementCount) banner(); setTimeout(() => tin.focus(), 60); dismissHint(); }
+function closeTerm() { term.classList.remove('open'); tin.blur(); }
+function toggleTerm() { term.classList.contains('open') ? closeTerm() : openTerm(); }
+$('#btnTerm').onclick = toggleTerm;
+$('#tClose').onclick = closeTerm;
+term.addEventListener('click', e => { if (!e.target.closest('a') && !getSelection().toString()) tin.focus(); });
+
+const CMDS = {
+  help: () => [
+    '<span class="tc-m">navigation</span>',
+    `  <span class="tc-y">ls</span>                 list endpoints`,
+    `  <span class="tc-y">cat</span> &lt;section&gt;      print a section here  (e.g. cat experience)`,
+    `  <span class="tc-y">open</span> &lt;section&gt;     fly the camera to a section`,
+    `  <span class="tc-y">curl</span> &lt;path&gt;       raw JSON from the API  (e.g. curl /skills)`,
+    '<span class="tc-m">look & feel</span>',
+    `  <span class="tc-y">theme</span> [name]       list or switch themes`,
+    `  <span class="tc-y">classic</span>            plain printable resume`,
+    `  <span class="tc-y">pdf</span>                download the PDF`,
+    '<span class="tc-m">misc</span>',
+    `  <span class="tc-y">whoami</span> · <span class="tc-y">neofetch</span> · <span class="tc-y">contact</span> · <span class="tc-y">date</span> · <span class="tc-y">echo</span> · <span class="tc-y">clear</span> · <span class="tc-y">exit</span>`,
+    `  <span class="tc-m">…and maybe a sudo command or two.</span>`
+  ],
+  ls: () => SECTIONS.map((s, i) => `<span class="tc-m">${String(i + 1).padStart(2, '0')}</span>  <span class="${s.method === 'POST' ? 'tc-p' : 'tc-b'}">${s.method.padEnd(5)}</span>/api/v1${s.path}`),
+  whoami: () => [`${esc(RESUME.name)} — ${esc(RESUME.role)}`, `<span class="tc-m">(you are: visitor. thanks for stopping by.)</span>`],
+  cat: a => a[0] && TEXT[norm(a[0])] ? TEXT[norm(a[0])]() : [`<span class="tc-e">cat: ${esc(a[0] || '')}: no such section.</span> try <span class="tc-y">ls</span>`],
+  open: a => { const id = norm(a[0] || ''); if (!TEXT[id]) return [`<span class="tc-e">open: unknown section '${esc(a[0] || '')}'</span>`]; closeTerm(); openSection(id); return [`→ flying to /${id}`]; },
+  curl: a => { const id = norm((a[0] || '').replace(/^.*\//, '')); if (!TEXT[id]) return [`<span class="tc-e">curl: (22) 404 Not Found</span>`]; return [`<span class="tc-m">HTTP/1.1 200 OK · content-type: application/json</span>`, jsonHTML(sectionData(id))]; },
+  theme: a => {
+    if (!a[0]) return [`current: <span class="tc-y">${theme}</span>`, ...THEMES.map(t => `  ${t.id === theme ? '<span class="tc-a">●</span>' : '○'} ${t.id.padEnd(10)} <span class="tc-m">${t.label}</span>`), `usage: theme &lt;name&gt;`];
+    return setTheme(a[0].toLowerCase()) ? [`theme set → <span class="tc-y">${esc(a[0].toLowerCase())}</span>`] : [`<span class="tc-e">theme: unknown '${esc(a[0])}'</span>`];
+  },
+  classic: () => { closeTerm(); openClassic(); return ['opening classic view…']; },
+  pdf: () => { const a = document.createElement('a'); a.href = 'DHRUV_RESUME.pdf'; a.download = ''; a.click(); return ['downloading DHRUV_RESUME.pdf…']; },
+  contact: () => TEXT.contact(),
+  date: () => [new Date().toString()],
+  echo: a => [esc(a.join(' '))],
+  clear: () => { tout.innerHTML = ''; return null; },
+  exit: () => { closeTerm(); return null; },
+  neofetch: () => [
+    `<span class="tc-a">   ____  </span>   <span class="tc-y">visitor@dhruv</span>`,
+    `<span class="tc-a">  |  _ \\ </span>   ─────────────`,
+    `<span class="tc-a">  | | | |</span>   <span class="tc-b">Role</span>     ${esc(RESUME.role)}`,
+    `<span class="tc-a">  | |_| |</span>   <span class="tc-b">Runtime</span>  Node.js · Express · Go`,
+    `<span class="tc-a">  |____/ </span>   <span class="tc-b">Data</span>     MongoDB · Redis · MsSQL · Postgres`,
+    `            <span class="tc-b">Events</span>   Apache Kafka · Cron`,
+    `            <span class="tc-b">Cloud</span>    AWS · Docker · CI/CD`,
+    `            <span class="tc-b">Uptime</span>   1.5 yrs in production`,
+    `            <span class="tc-b">Theme</span>    ${theme}`,
+    `            <span style="color:#f87171">███</span><span style="color:#facc15">███</span><span style="color:#4ade80">███</span><span style="color:#60a5fa">███</span><span style="color:#f472b6">███</span>`
+  ],
+  sudo: a => {
+    const cmd = a.join(' ');
+    if (/hire/.test(cmd)) { setTimeout(() => { closeTerm(); openSection('contact'); }, 1400); return [`[sudo] password for visitor: ********`, `<span class="tc-a">✔ permission granted.</span> routing you to POST /contact …`]; }
+    if (/rm\s+-rf/.test(cmd)) return [`<span class="tc-e">nice try.</span> idempotency checks and rollback support are in place 😉`];
+    return [`visitor is not in the sudoers file. try <span class="tc-y">sudo hire-dhruv</span>`];
+  },
+  hire: () => CMDS.sudo(['hire'])
+};
+const norm = s => { s = (s || '').toLowerCase().replace(/^\//, ''); const n = parseInt(s, 10); if (n >= 1 && n <= SECTIONS.length) return SECTIONS[n - 1].id; return SECTIONS.find(x => x.id.startsWith(s) && s)?.id || s; };
+function run(line) {
+  tprint(`<span class="t-ps">visitor@dhruv<b>:~$</b></span> ${esc(line)}`);
+  const [cmd, ...args] = line.trim().split(/\s+/);
+  if (!cmd) return;
+  let out;
+  if (CMDS[cmd.toLowerCase()]) out = CMDS[cmd.toLowerCase()](args);
+  else if (TEXT[norm(cmd)] && norm(cmd) === cmd.toLowerCase()) out = [...TEXT[cmd.toLowerCase()](), `<span class="tc-m">tip: 'open ${cmd.toLowerCase()}' flies the camera there</span>`];
+  else out = [`<span class="tc-e">zsh: command not found: ${esc(cmd)}</span> — type <span class="tc-y">help</span>`];
+  if (out) { out.forEach(l => tprint(l)); tprint(); }
+}
+tin.addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter') { const v = tin.value; if (v.trim()) { hist.push(v); } hIdx = hist.length; tin.value = ''; run(v); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); if (hIdx > 0) tin.value = hist[--hIdx]; }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); hIdx = Math.min(hist.length, hIdx + 1); tin.value = hist[hIdx] || ''; }
+  else if (e.key === 'Escape' || e.key === '`') { e.preventDefault(); closeTerm(); }
+  else if (e.key === 'Tab') {
+    e.preventDefault();
+    const parts = tin.value.split(/\s+/);
+    const last = parts[parts.length - 1].toLowerCase();
+    const pool = parts.length === 1 ? Object.keys(CMDS).concat(SECTIONS.map(s => s.id)) : parts[0] === 'theme' ? THEMES.map(t => t.id) : SECTIONS.map(s => s.id);
+    const hits = pool.filter(p => p.startsWith(last));
+    if (hits.length === 1) { parts[parts.length - 1] = hits[0]; tin.value = parts.join(' ') + ' '; }
+    else if (hits.length > 1) tprint(`<span class="tc-m">${hits.join('  ')}</span>`);
+  }
+});
+
+/* ───────── Global keys ───────── */
+addEventListener('keydown', e => {
+  if (!$('#boot').classList.contains('gone')) { skipBoot(); return; }
+  if (e.target.matches('input, textarea')) { if (e.key === 'Escape') e.target.blur(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if ($('#classic').classList.contains('open')) { if (e.key === 'Escape') closeClassic(); return; }
+  if (e.key === '`' || e.key === '~') { e.preventDefault(); toggleTerm(); }
+  else if (e.key === 'Escape') { if (term.classList.contains('open')) closeTerm(); else closeSection(); }
+  else if (e.key === 't' || e.key === 'T') cycleTheme();
+  else if (/^[1-7]$/.test(e.key)) openSection(SECTIONS[+e.key - 1].id);
+  else if (current && e.key === 'ArrowRight') step(1);
+  else if (current && e.key === 'ArrowLeft') step(-1);
+});
+
+/* ───────── Boot sequence ───────── */
+const BOOT = [
+  '<span class="dim">dhruv-os 2.0.25 (tty1)</span>', '',
+  '[ <span class="ok">OK</span> ] Mounting /home/dhruv …',
+  '[ <span class="ok">OK</span> ] Starting Node.js runtime',
+  '[ <span class="ok">OK</span> ] Connecting to MongoDB replica set … <span class="hi">connected</span>',
+  '[ <span class="ok">OK</span> ] Warming Redis cache … <span class="hi">7 keys loaded</span>',
+  '[ <span class="ok">OK</span> ] Kafka consumer group <span class="hi">"recruiters"</span> joined',
+  '[ <span class="ok">OK</span> ] Verifying webhook signatures … <span class="hi">valid</span>',
+  '[ <span class="ok">OK</span> ] Compiling shaders with three.js',
+  '', '<span class="hi">&gt; server listening on :3000 — welcome.</span> <span class="caret"></span>'
+];
+let bootDone = false, bootEnded = false, sceneState = 'pending', bootTimer;
+function bootLine(i) { $('#bootLog').insertAdjacentHTML('beforeend', `<div>${BOOT[i] || '&nbsp;'}</div>`); }
+function runBoot() {
+  let i = 0;
+  const tick = () => { if (i < BOOT.length) { bootLine(i++); bootTimer = setTimeout(tick, reduceMotion ? 0 : 150 + Math.random() * 90); } else { bootDone = true; setTimeout(maybeEndBoot, 350); } };
+  tick();
+}
+function skipBoot() {
+  if (bootDone) return;
+  clearTimeout(bootTimer);
+  $('#bootLog').innerHTML = BOOT.map(l => `<div>${l || '&nbsp;'}</div>`).join('');
+  bootDone = true; maybeEndBoot();
+}
+function maybeEndBoot() {
+  if (bootEnded || !bootDone || sceneState === 'pending') return;
+  bootEnded = true;
+  $('#boot').classList.add('gone');
+  dispatchEvent(new Event('boot-end'));
+  if (sceneState === 'failed') { toast('3D unavailable — showing classic view'); openClassic(); }
+  const h = location.hash.slice(1);
+  if (SECTIONS.some(s => s.id === h)) setTimeout(() => openSection(h), 500);
+}
+$('#boot').addEventListener('click', skipBoot);
+addEventListener('scene-ready', () => { sceneState = 'ready'; maybeEndBoot(); });
+addEventListener('scene-failed', () => { sceneState = 'failed'; maybeEndBoot(); });
+setTimeout(() => { if (sceneState === 'pending') { sceneState = 'failed'; maybeEndBoot(); } }, 12000);
+runBoot();
+
+window.UI = { RESUME, SECTIONS, openSection, closeSection, getTheme: () => theme, dismissHint, isOpen: () => current };
+})();
+</script>
+
+<!-- ═════════════ 3D scene ═════════════ -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+const UI = window.UI;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = () => innerWidth < 760;
+
+/* ───────── Theme definitions for the 3D world ───────── */
+const THEMES = {
+  neon: {
+    bg: '#07020f', fog: 0.016, core: '#ff2bd6',
+    palette: ['#00f0ff', '#8a5cff', '#ffe600', '#00ff9c', '#ff6b2b', '#ff2bd6'],
+    wire: '#00f0ff', wireOpacity: 0.9, link: '#8a5cff', linkOpacity: 0.55, p1: '#00f0ff', p2: '#ff2bd6',
+    stars: '#c9b8ff', starOpacity: 0.7, grid: ['#ff2bd6', '#3a0d5c'], gridOpacity: 0.55, gridScroll: true,
+    bloom: [0.75, 0.45, 0.18], solidOpacity: 0.2, emissive: 0.55, rough: 0.4, metal: 0.3,
+    word: '#00f0ff', wordOpacity: 0.5, wordFont: 'Orbitron', additive: true, rings: false, nebula: false, matrix: false,
+    ambient: 0.4, dir: 1.2
+  },
+  space: {
+    bg: '#02030a', fog: 0.006, core: '#ffcf70',
+    palette: ['#6ec6ff', '#ff6f91', '#c3a6ff', '#7dffb3', '#ffb347', '#ffd86e'],
+    wire: '#ffffff', wireOpacity: 0.18, link: '#6ec6ff', linkOpacity: 0.25, p1: '#9fd8ff', p2: '#ffcf70',
+    stars: '#ffffff', starOpacity: 1, grid: null,
+    bloom: [0.6, 0.7, 0.2], solidOpacity: 1, emissive: 0.28, rough: 0.75, metal: 0.05,
+    word: '#cfe3ff', wordOpacity: 0.32, wordFont: 'Space Grotesk', additive: true, rings: true, nebula: true, matrix: false,
+    ambient: 0.25, dir: 2.6
+  },
+  matrix: {
+    bg: '#000000', fog: 0.014, core: '#00ff66',
+    palette: ['#00ff66', '#3dff8f', '#7dffa8', '#00e05a', '#a8ffbf', '#00ff99'],
+    wire: '#00ff66', wireOpacity: 0.95, link: '#00aa44', linkOpacity: 0.6, p1: '#d4ffe2', p2: '#00ff66',
+    stars: '#00ff66', starOpacity: 0, grid: null,
+    bloom: [0.7, 0.45, 0.25], solidOpacity: 0.1, emissive: 0.6, rough: 0.5, metal: 0,
+    word: '#00ff66', wordOpacity: 0.45, wordFont: 'JetBrains Mono', additive: true, rings: false, nebula: false, matrix: true,
+    ambient: 0.3, dir: 0.8
+  },
+  blueprint: {
+    bg: '#0d3a75', fog: 0.011, core: '#ffffff',
+    palette: ['#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff'],
+    wire: '#eef5ff', wireOpacity: 0.95, link: '#9cc3ff', linkOpacity: 0.6, p1: '#ffffff', p2: '#ffd166',
+    stars: '#ffffff', starOpacity: 0, grid: ['#ffffff', '#5d8cc9'], gridOpacity: 0.28, gridScroll: false,
+    bloom: null, solidOpacity: 0.06, emissive: 0.15, rough: 1, metal: 0,
+    word: '#ffffff', wordOpacity: 0.4, wordFont: 'JetBrains Mono', additive: false, rings: true, nebula: false, matrix: false,
+    ambient: 1, dir: 0.4
+  },
+  paper: {
+    bg: '#f2ede3', fog: 0.012, core: '#29335c',
+    palette: ['#e4572e', '#2e86ab', '#f3a712', '#a8c686', '#db2b39', '#7d5ba6'],
+    wire: '#1d1d1f', wireOpacity: 0.75, link: '#1d1d1f', linkOpacity: 0.22, p1: '#e4572e', p2: '#2e86ab',
+    stars: '#000000', starOpacity: 0, grid: ['#1d1d1f', '#cfc6b4'], gridOpacity: 0.35, gridScroll: false,
+    bloom: null, solidOpacity: 0.95, emissive: 0, rough: 0.6, metal: 0,
+    word: '#1d1d1f', wordOpacity: 0.35, wordFont: 'Fraunces', additive: false, rings: false, nebula: false, matrix: false,
+    ambient: 1.4, dir: 2.2
+  }
+};
+
+/* ───────── Renderer / scene ───────── */
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+} catch (err) {
+  dispatchEvent(new Event('scene-failed'));
+  throw err;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.getElementById('stage').appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer({ element: document.getElementById('labels') });
+labelRenderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 600);
+const HOME = () => isMobile() ? new THREE.Vector3(0, 10, 38) : new THREE.Vector3(0, 7.5, 27);
+camera.position.copy(HOME()).multiplyScalar(1.8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 70;
+controls.maxPolarAngle = Math.PI * 0.82;
+controls.autoRotate = true; controls.autoRotateSpeed = reduceMotion ? 0.15 : 0.45;
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1, 0.5, 0.1);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+const sun = new THREE.DirectionalLight(0xffffff, 1.5); sun.position.set(12, 18, 10);
+const coreLight = new THREE.PointLight(0xffffff, 30, 30);
+scene.add(ambient, sun, coreLight);
+
+/* ───────── Textures ───────── */
+function radialTex(size = 64, inner = 'rgba(255,255,255,1)', mid = 'rgba(255,255,255,.35)') {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gr.addColorStop(0, inner); gr.addColorStop(0.35, mid); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, size, size);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const dotTex = radialTex(64);
+const softTex = radialTex(256, 'rgba(255,255,255,.9)', 'rgba(255,255,255,.25)');
+
+/* ───────── Nodes ───────── */
+const SECTIONS = UI.SECTIONS;
+const SHAPES = {
+  about:        () => new THREE.IcosahedronGeometry(2, 1),
+  skills:       () => new THREE.DodecahedronGeometry(1.2, 0),
+  experience:   () => new THREE.TorusKnotGeometry(0.85, 0.27, 96, 10),
+  projects:     () => new THREE.BoxGeometry(1.55, 1.55, 1.55),
+  education:    () => new THREE.TetrahedronGeometry(1.45, 0),
+  achievements: () => new THREE.OctahedronGeometry(1.3, 0),
+  contact:      () => new THREE.TorusGeometry(0.9, 0.32, 12, 32)
+};
+const WIRE = {
+  experience: () => new THREE.WireframeGeometry(new THREE.TorusKnotGeometry(0.85, 0.27, 48, 6)),
+  contact:    () => new THREE.WireframeGeometry(new THREE.TorusGeometry(0.9, 0.32, 6, 18))
+};
+const Y = [1.6, -1.2, 2.2, -1.8, 1.2, -0.6];
+const RING_R = 10.5;
+const nodes = [], nodeMap = {}, pickables = [];
+
+SECTIONS.forEach((s, i) => {
+  const isCore = i === 0;
+  const group = new THREE.Group();
+  if (!isCore) {
+    const a = ((i - 1) / (SECTIONS.length - 1)) * Math.PI * 2 + Math.PI / 6;
+    group.position.set(Math.cos(a) * RING_R, Y[i - 1], Math.sin(a) * RING_R);
+  }
+  const geo = SHAPES[s.id]();
+  geo.computeBoundingSphere();
+  const r = geo.boundingSphere.radius;
+  const solid = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ transparent: true }));
+  const wire = new THREE.LineSegments(WIRE[s.id] ? WIRE[s.id]() : new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ transparent: true }));
+  wire.scale.setScalar(isCore ? 1.12 : 1.16);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(r * 1.75, 0.03, 6, 96), new THREE.MeshBasicMaterial({ transparent: true }));
+  ring.rotation.set(Math.PI / 2 - 0.35, 0.2 * i, 0);
+  const hit = new THREE.Mesh(new THREE.SphereGeometry(r * 1.35, 12, 8), new THREE.MeshBasicMaterial({ visible: false }));
+  group.add(solid, wire, ring, hit);
+
+  const el = document.createElement('div');
+  el.className = 'nl' + (isCore ? ' nl-core' : '');
+  el.innerHTML = `<div class="nl-in"><span class="nl-n">${String(i + 1).padStart(2, '0')}</span><span class="nl-t">${isCore ? UI.RESUME.name : s.title}</span><span class="nl-p">${s.method} ${s.path}</span></div>`;
+  el.firstChild.addEventListener('click', () => UI.isOpen() === s.id ? UI.closeSection() : UI.openSection(s.id));
+  el.firstChild.addEventListener('pointerenter', () => { labelHover = s.id; });
+  el.firstChild.addEventListener('pointerleave', () => { if (labelHover === s.id) labelHover = null; });
+  const label = new CSS2DObject(el);
+  label.position.set(0, r + (isCore ? 1.4 : 0.9), 0);
+  group.add(label);
+
+  scene.add(group);
+  const node = { id: s.id, i, isCore, group, solid, wire, ring, el, r, scale: 1, target: 1, spin: 0.25 + Math.random() * 0.3, boost: 0 };
+  hit.userData.node = node;
+  pickables.push(hit);
+  nodes.push(node); nodeMap[s.id] = node;
+});
+
+/* Core gyroscope rings */
+const gyro = new THREE.Group();
+const gyroRings = [3.0, 3.5].map((rad, k) => {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(rad, 0.022, 6, 128), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.8 }));
+  m.rotation.x = k ? 1.1 : -0.6; m.rotation.y = k ? 0.4 : -0.3;
+  gyro.add(m); return m;
+});
+scene.add(gyro);
+
+/* Skills satellites — one per skill category */
+const sats = UI.RESUME.skills.map((s, k) => {
+  const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 1), new THREE.MeshStandardMaterial());
+  const el = document.createElement('div'); el.className = 'sat'; el.textContent = s.cat;
+  const lab = new CSS2DObject(el); lab.visible = false; m.add(lab);
+  scene.add(m);
+  return { m, lab, rad: 2.5 + (k % 3) * 0.45, speed: 0.35 + k * 0.06, tilt: k * 0.7, phase: k * 1.9 };
+});
+
+/* ───────── Links & event particles (the "Kafka" streams) ───────── */
+const links = nodes.filter(n => !n.isCore).map(n => {
+  const p = n.group.position;
+  const ctrl = p.clone().multiplyScalar(0.5).add(new THREE.Vector3(0, 3.2, 0));
+  const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0, 0), ctrl, p.clone());
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(60)), new THREE.LineBasicMaterial({ transparent: true }));
+  scene.add(line);
+  return { node: n, curve, line };
+});
+const PER = 30, PCOUNT = PER * links.length;
+const pPos = new Float32Array(PCOUNT * 3), pCol = new Float32Array(PCOUNT * 3);
+const pT = new Float32Array(PCOUNT), pS = new Float32Array(PCOUNT), pDir = new Int8Array(PCOUNT);
+for (let k = 0; k < PCOUNT; k++) { pT[k] = Math.random(); pS[k] = 0.08 + Math.random() * 0.14; pDir[k] = Math.random() < 0.62 ? 1 : -1; }
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+const pMat = new THREE.PointsMaterial({ size: 0.26, map: dotTex, vertexColors: true, transparent: true, depthWrite: false });
+const particles = new THREE.Points(pGeo, pMat);
+particles.frustumCulled = false;
+scene.add(particles);
+
+/* ───────── Environment ───────── */
+const STARN = 2600, sPos = new Float32Array(STARN * 3);
+for (let k = 0; k < STARN; k++) {
+  const v = new THREE.Vector3().randomDirection().multiplyScalar(70 + Math.random() * 110);
+  sPos.set([v.x, v.y, v.z], k * 3);
+}
+const sGeo = new THREE.BufferGeometry(); sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+const stars = new THREE.Points(sGeo, new THREE.PointsMaterial({ size: 0.7, map: dotTex, transparent: true, depthWrite: false, fog: false }));
+scene.add(stars);
+
+const nebula = new THREE.Group();
+[[-70, 25, -110, '#5b2a86', 120], [80, -15, -120, '#1d4e89', 130], [10, 50, -150, '#7a2048', 110], [-30, -40, 120, '#123a6b', 140]].forEach(([x, y, z, c, s]) => {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: c, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  sp.position.set(x, y, z); sp.scale.setScalar(s); nebula.add(sp);
+});
+scene.add(nebula);
+
+let grid = null;
+function buildGrid(th) {
+  if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); grid = null; }
+  if (!th.grid) return;
+  grid = new THREE.GridHelper(200, 80, th.grid[0], th.grid[1]);
+  grid.material.transparent = true; grid.material.opacity = th.gridOpacity; grid.material.depthWrite = false;
+  grid.position.y = -7;
+  scene.add(grid);
+}
+
+/* Floating tech words */
+const WORDS = ['Node.js', 'Express', 'Kafka', 'Redis', 'MongoDB', 'AWS', 'Docker', 'TypeScript', 'Go', 'Python', 'C++', 'SQL', 'Stripe', 'Razorpay', 'JWT', 'OAuth 2.0', 'RBAC', 'WebSockets', 'Lambda', 'S3', 'SQS', 'CloudWatch', 'Jest', 'Swagger', 'PostgreSQL', 'MsSQL', 'CI/CD', 'Linux', 'Microservices', 'Webhooks', 'Cron', 'Postman'];
+const wordGroup = new THREE.Group();
+const words = WORDS.map((w, k) => {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 96;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  const a = (k / WORDS.length) * Math.PI * 2 + Math.random() * 0.2, rad = 18 + Math.random() * 7;
+  sp.position.set(Math.cos(a) * rad, -5 + Math.random() * 14, Math.sin(a) * rad);
+  sp.scale.set(4.4, 0.825, 1);
+  wordGroup.add(sp);
+  return { w, c, tex, sp };
+});
+scene.add(wordGroup);
+function drawWords(th) {
+  words.forEach(({ w, c, tex, sp }) => {
+    const g = c.getContext('2d');
+    g.clearRect(0, 0, c.width, c.height);
+    g.font = `600 46px "${th.wordFont}", sans-serif`;
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = th.word;
+    g.fillText(w, c.width / 2, c.height / 2);
+    tex.needsUpdate = true;
+    sp.material.opacity = th.wordOpacity;
+    sp.material.blending = th.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+    sp.material.needsUpdate = true;
+  });
+}
+
+/* Matrix rain → background texture */
+const mCan = document.createElement('canvas'); mCan.width = 1024; mCan.height = 640;
+const mCtx = mCan.getContext('2d'); mCtx.fillStyle = '#000'; mCtx.fillRect(0, 0, 1024, 640);
+const FS = 16, COLS = Math.floor(1024 / FS), drops = Array.from({ length: COLS }, () => Math.random() * -40);
+const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニ0123456789{}[]<>=+*/;:$#ABCDEF'.split('');
+const mTex = new THREE.CanvasTexture(mCan); mTex.colorSpace = THREE.SRGBColorSpace;
+let mAcc = 0;
+function drawMatrix() {
+  mCtx.fillStyle = 'rgba(0,0,0,0.11)'; mCtx.fillRect(0, 0, 1024, 640);
+  mCtx.font = `${FS}px "JetBrains Mono", monospace`;
+  for (let k = 0; k < COLS; k++) {
+    const y = drops[k] * FS;
+    if (y > 0) { mCtx.fillStyle = Math.random() < 0.08 ? '#7dffb0' : '#0b6b33'; mCtx.fillText(GLYPHS[(Math.random() * GLYPHS.length) | 0], k * FS, y); }
+    drops[k] += 1;
+    if (y > 640 && Math.random() > 0.965) drops[k] = Math.random() * -20;
+  }
+  mTex.needsUpdate = true;
+}
+
+/* Click pulse */
+const pulse = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 64), new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+pulse.visible = false; scene.add(pulse);
+let pulseT = 1;
+function burst(id) {
+  const n = nodeMap[id]; if (!n) return;
+  pulse.position.copy(n.group.position); pulse.lookAt(camera.position); pulseT = 0; pulse.visible = true;
+  n.boost = 1;
+}
+
+/* ───────── Theme application ───────── */
+let TH = THEMES.neon, fovKick = 0;
+function applyTheme(name, animate) {
+  TH = THEMES[name] || THEMES.neon;
+  const th = TH;
+  scene.background = th.matrix ? mTex : new THREE.Color(th.bg);
+  scene.fog = new THREE.FogExp2(th.bg, th.fog);
+  bloom.enabled = !!th.bloom;
+  if (th.bloom) [bloom.strength, bloom.radius, bloom.threshold] = th.bloom;
+  ambient.intensity = th.ambient; sun.intensity = th.dir;
+  coreLight.color.set(th.core); coreLight.intensity = th.bloom ? 14 : 18;
+
+  const blend = th.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+  nodes.forEach(n => {
+    const col = new THREE.Color(n.isCore ? th.core : th.palette[(n.i - 1) % th.palette.length]);
+    const m = n.solid.material;
+    m.color.copy(col); m.emissive.copy(col); m.emissiveIntensity = th.emissive;
+    m.opacity = th.solidOpacity; m.depthWrite = th.solidOpacity > 0.5;
+    m.roughness = th.rough; m.metalness = th.metal; m.needsUpdate = true;
+    n.wire.material.color.set(th.wire); n.wire.material.opacity = th.wireOpacity;
+    n.ring.visible = th.rings;
+    n.ring.material.color.set(name === 'blueprint' ? '#ffd166' : col); n.ring.material.opacity = name === 'blueprint' ? 0.5 : 0.45;
+  });
+  gyroRings.forEach((g, k) => { g.material.color.set(k ? th.p1 : th.wire); g.material.opacity = th.additive ? 0.8 : 0.6; });
+  sats.forEach((s, k) => {
+    const c = new THREE.Color(th.palette[k % th.palette.length]);
+    s.m.material.color.copy(c); s.m.material.emissive.copy(c); s.m.material.emissiveIntensity = Math.max(0.4, th.emissive);
+  });
+  links.forEach(l => { l.line.material.color.set(th.link); l.line.material.opacity = th.linkOpacity; l.line.material.blending = blend; l.line.material.needsUpdate = true; });
+  const c1 = new THREE.Color(th.p1), c2 = new THREE.Color(th.p2);
+  for (let k = 0; k < PCOUNT; k++) (pDir[k] > 0 ? c1 : c2).toArray(pCol, k * 3);
+  pGeo.attributes.color.needsUpdate = true;
+  pMat.blending = blend; pMat.size = th.additive ? 0.26 : 0.2; pMat.needsUpdate = true;
+  stars.visible = th.starOpacity > 0; stars.material.color.set(th.stars); stars.material.opacity = th.starOpacity;
+  nebula.visible = th.nebula;
+  pulse.material.color.set(th.p2); pulse.material.blending = blend; pulse.material.needsUpdate = true;
+  buildGrid(th);
+  drawWords(th);
+  document.fonts && document.fonts.load(`600 46px "${th.wordFont}"`).then(() => { if (TH === th) drawWords(th); }).catch(() => {});
+  if (animate && !reduceMotion) fovKick = 1;
+}
+
+/* ───────── Camera tweens ───────── */
+let tween = null, focusedId = null;
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function startTween(pos, tgt, dur = 1400) {
+  tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, s: performance.now(), d: reduceMotion ? 1 : dur };
+  controls.enabled = false;
+}
+function focus(id, silent) {
+  const n = nodeMap[id]; if (!n) return;
+  focusedId = id;
+  controls.autoRotate = false;
+  const p = n.group.position.clone();
+  let out = n.isCore ? camera.position.clone().setY(0) : p.clone().setY(0);
+  if (out.lengthSq() < 0.01) out.set(0, 0, 1);
+  out.normalize();
+  const dist = (n.isCore ? 11 : 8.8) + (isMobile() ? 3.5 : 0);
+  const camEnd = p.clone().addScaledVector(out, dist).add(new THREE.Vector3(0, dist * 0.28, 0));
+  const fwd = p.clone().sub(camEnd).normalize();
+  const right = new THREE.Vector3().crossVectors(fwd, camera.up).normalize();
+  const tgtEnd = isMobile() ? p.clone().add(new THREE.Vector3(0, -dist * 0.3, 0)) : p.clone().addScaledVector(right, dist * 0.36);
+  startTween(camEnd, tgtEnd);
+  nodes.forEach(m => m.el.classList.toggle('active', m.id === id));
+  sats.forEach(s => s.lab.visible = id === 'skills');
+  if (!silent) burst(id);
+}
+function home() {
+  focusedId = null;
+  nodes.forEach(m => m.el.classList.remove('active'));
+  sats.forEach(s => s.lab.visible = false);
+  startTween(HOME(), new THREE.Vector3(0, 0, 0), 1600);
+  controls.autoRotate = true;
+}
+let externalHover = null, labelHover = null;
+function hover(id) { externalHover = id; }
+
+/* ───────── Picking ───────── */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(-9, -9);
+let pickHover = null, needPick = false, downAt = null;
+function pick() {
+  ray.setFromCamera(ndc, camera);
+  const h = ray.intersectObjects(pickables, false);
+  return h.length ? h[0].object.userData.node : null;
+}
+const cvs = renderer.domElement;
+const setNdc = e => ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+cvs.addEventListener('pointermove', e => { setNdc(e); needPick = e.pointerType === 'mouse'; });
+cvs.addEventListener('pointerleave', () => { ndc.set(-9, -9); needPick = true; });
+cvs.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY }; UI.dismissHint(); });
+cvs.addEventListener('pointerup', e => {
+  if (!downAt) return;
+  const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y); downAt = null;
+  if (moved > 6) return;
+  setNdc(e);
+  const n = pick();
+  if (n) UI.isOpen() === n.id ? UI.closeSection() : UI.openSection(n.id);
+});
+controls.addEventListener('start', () => { tween = null; controls.enabled = true; });
+
+/* ───────── Resize ───────── */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  labelRenderer.setSize(innerWidth, innerHeight);
+  if (focusedId) focus(focusedId, true);
+});
+
+/* ───────── Loop ───────── */
+const clock = new THREE.Clock();
+const tmp = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), xAxis = new THREE.Vector3(1, 0, 0);
+addEventListener('boot-end', () => { if (!focusedId) startTween(HOME(), new THREE.Vector3(), 2600); }, { once: true });
+
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+
+  // hover state
+  if (needPick) { pickHover = pick(); needPick = false; }
+  const hov = labelHover || (pickHover && pickHover.id) || externalHover;
+  cvs.style.cursor = pickHover ? 'pointer' : '';
+  nodes.forEach(n => {
+    const isH = hov === n.id, isF = focusedId === n.id;
+    n.target = isF ? 1.18 : isH ? 1.22 : 1;
+    n.el.classList.toggle('hover', isH);
+    n.scale += (n.target - n.scale) * Math.min(1, dt * 8);
+    n.group.scale.setScalar(n.scale);
+    const sp = n.spin * (isH || isF ? 2.4 : 1);
+    n.solid.rotation.x += dt * sp * 0.7; n.solid.rotation.y += dt * sp;
+    n.wire.rotation.x -= dt * sp * 0.35; n.wire.rotation.y -= dt * sp * 0.5;
+    n.ring.rotation.z += dt * 0.25;
+    n.boost = Math.max(0, n.boost - dt * 0.6);
+  });
+  gyro.rotation.y += dt * 0.35; gyro.rotation.z = Math.sin(t * 0.4) * 0.3;
+  gyroRings[0].rotation.x += dt * 0.5; gyroRings[1].rotation.y += dt * 0.4;
+
+  // skills satellites
+  const sp = nodeMap.skills.group.position;
+  sats.forEach(s => {
+    const a = t * s.speed + s.phase;
+    tmp.set(Math.cos(a) * s.rad, 0, Math.sin(a) * s.rad).applyAxisAngle(xAxis, s.tilt * 0.6).applyAxisAngle(up, s.tilt);
+    s.m.position.copy(sp).add(tmp.multiplyScalar(nodeMap.skills.scale));
+  });
+
+  // event particles
+  for (let L = 0; L < links.length; L++) {
+    const l = links[L], n = l.node;
+    const active = focusedId === n.id || hov === n.id;
+    const mult = 1 + (active ? 2.2 : 0) + n.boost * 4;
+    l.line.material.opacity = TH.linkOpacity * (active ? 1.8 : 1);
+    for (let k = L * PER; k < (L + 1) * PER; k++) {
+      let u = pT[k] + pS[k] * dt * mult * pDir[k];
+      if (u > 1) u -= 1; else if (u < 0) u += 1;
+      pT[k] = u;
+      l.curve.getPoint(u, tmp);
+      pPos[k * 3] = tmp.x; pPos[k * 3 + 1] = tmp.y; pPos[k * 3 + 2] = tmp.z;
+    }
+  }
+  pGeo.attributes.position.needsUpdate = true;
+
+  // environment
+  wordGroup.rotation.y -= dt * 0.025;
+  stars.rotation.y += dt * 0.004;
+  if (grid && TH.gridScroll) grid.position.z = (t * 1.6) % 2.5;
+  if (TH.matrix) { mAcc += dt; if (mAcc > 0.05) { mAcc = 0; drawMatrix(); } }
+
+  if (pulse.visible) {
+    pulseT += dt * 1.4;
+    const k = Math.min(pulseT, 1);
+    pulse.scale.setScalar(1 + k * 5);
+    pulse.material.opacity = (1 - k) * 0.8;
+    pulse.lookAt(camera.position);
+    if (k >= 1) pulse.visible = false;
+  }
+
+  // camera
+  if (fovKick > 0) {
+    fovKick = Math.max(0, fovKick - dt * 1.6);
+    camera.fov = 50 + Math.sin(fovKick * Math.PI) * 14;
+    camera.updateProjectionMatrix();
+  }
+  if (tween) {
+    const k = Math.min(1, (performance.now() - tween.s) / tween.d), e = ease(k);
+    camera.position.lerpVectors(tween.p0, tween.p1, e);
+    camera.position.y += Math.sin(e * Math.PI) * 2.5;
+    controls.target.lerpVectors(tween.t0, tween.t1, e);
+    camera.lookAt(controls.target);
+    if (k >= 1) { tween = null; controls.enabled = true; controls.update(); }
+  } else controls.update();
+
+  composer.render();
+  labelRenderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+applyTheme(UI.getTheme());
+window.Scene3D = { focus, home, applyTheme, hover, burst };
+requestAnimationFrame(tick);
+dispatchEvent(new Event('scene-ready'));
+</script>
+</body>
+</html>
