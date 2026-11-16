@@ -7,7 +7,7 @@
 <meta name="description" content="Interactive 3D resume of Dhruv Aggarwal — Backend Developer (Node.js). Explore the services, switch themes, or open the terminal.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&family=Shippori+Mincho:wght@600;800&display=swap" rel="stylesheet">
 <style>
 /* ───────────── Theme tokens ───────────── */
 :root, body[data-theme="neon"] {
@@ -39,6 +39,23 @@ body[data-theme="paper"] {
   --panel:rgba(255,252,246,.94); --border:rgba(29,29,31,.14); --chip:rgba(46,134,171,.08); --chip-b:rgba(46,134,171,.3);
   --mark:rgba(243,167,18,.28); --head:'Fraunces',serif; --body:'Inter',sans-serif;
   --glow:0 18px 50px rgba(29,29,31,.12); --radius:16px; --label-shadow:none;
+}
+/* Anime themes — every section has its own style (a bankai / a breathing technique).
+   The accent follows the open section; the per-section --accent/--kanji overrides are
+   generated from STYLES in the script. */
+body[data-theme="bankai"] {
+  --bg:#0a0507; --fg:#f5efe6; --muted:#a8968f; --accent:#e5162f; --accent2:#f5efe6; --radius:3px;
+  --kanji:"斬"; --kanji-big:"卍解"; --wm-size:150px;
+}
+body[data-theme="breathing"] {
+  --bg:#07080c; --fg:#f3efe8; --muted:#a39d93; --accent:#ff8a3d; --accent2:#ffd27a; --radius:4px;
+  --kanji:"日"; --kanji-big:"全集中"; --wm-size:150px;
+}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) {
+  --panel:color-mix(in srgb,color-mix(in srgb,var(--bg) 92%,var(--accent)) 88%,transparent); --border:color-mix(in srgb,var(--accent) 45%,transparent);
+  --chip:color-mix(in srgb,var(--accent) 7%,transparent); --chip-b:color-mix(in srgb,var(--accent2) 30%,transparent);
+  --mark:color-mix(in srgb,var(--accent) 28%,transparent); --glow:0 0 36px color-mix(in srgb,var(--accent) 22%,transparent);
+  --head:'Shippori Mincho',serif; --body:'Inter',sans-serif; --label-shadow:0 0 14px rgba(0,0,0,.95);
 }
 
 /* ───────────── Base ───────────── */
@@ -243,6 +260,32 @@ pre.json{font:12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word}
 .toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-80px);z-index:40;padding:9px 16px;border-radius:999px;background:var(--panel);border:1px solid var(--border);font:600 12px var(--mono);transition:transform .4s cubic-bezier(.2,.9,.2,1);backdrop-filter:blur(10px)}
 .toast.show{transform:translate(-50%,0)}
 
+/* ───────────── Anime extras (Bankai + Breathing) ───────────── */
+#slash{position:fixed;inset:-20%;z-index:16;pointer-events:none;opacity:0;background:linear-gradient(115deg,transparent 45%,#000 47%,var(--s,#e5162f) 49.5%,#fff 50%,var(--s,#e5162f) 50.5%,#000 53%,transparent 55%)}
+#slash.go{animation:slash .6s cubic-bezier(.7,0,.2,1) forwards}
+@keyframes slash{0%{opacity:1;transform:translateX(-70%)}75%{opacity:1}100%{opacity:0;transform:translateX(70%)}}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .brand .name{font-weight:800;letter-spacing:.1em}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .p-title{font-weight:800;letter-spacing:.08em}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .p-title[data-kanji]:after{content:attr(data-kanji);margin-left:12px;color:var(--accent);font-size:.8em}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) #panel{border-left:3px solid var(--accent)}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) #panel:before{content:var(--kanji-big);position:absolute;right:-6px;bottom:40px;z-index:-1;font:800 var(--wm-size)/1 'Shippori Mincho',serif;writing-mode:vertical-rl;color:color-mix(in srgb,var(--accent) 8%,transparent);pointer-events:none}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .tl-item:before{border-radius:0;transform:rotate(45deg)}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .bul li:before{content:var(--kanji);font-size:10px;top:3px}
+body[data-theme="breathing"] .p-head{background:repeating-conic-gradient(color-mix(in srgb,var(--accent) 10%,transparent) 0 25%,transparent 0 50%) 0 0/14px 14px}
+body[data-theme="bankai"] .p-head{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 16%,transparent),transparent 60%)}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) :is(#panel,.p-head){transition:transform .6s cubic-bezier(.2,.9,.2,1),background .4s,border-color .4s}
+
+/* Per-section styles shown on the nav and the 3D labels */
+#nav button .k{display:none;font:800 13px 'Shippori Mincho',serif;width:16px;text-align:center;color:var(--c)}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) #nav button .k{display:inline-block}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) #nav button .i{display:none}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) #nav button.on{border-color:var(--c);box-shadow:0 0 18px color-mix(in srgb,var(--c) 30%,transparent)}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) #nav button.on .p{color:var(--c)}
+.nl-b{display:none;font:700 11px 'Shippori Mincho',serif;letter-spacing:.12em;color:var(--c);text-shadow:var(--label-shadow)}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .nl-b{display:block}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .nl-p{display:none}
+:is(body[data-theme="bankai"],body[data-theme="breathing"]) .nl-n{color:var(--c)}
+
 /* ───────────── Mobile ───────────── */
 @media (max-width:760px){
   .hud{padding:14px 16px}
@@ -256,8 +299,8 @@ pre.json{font:12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word}
   #nav::-webkit-scrollbar{display:none}
   #nav button{flex:none;background:var(--panel);border-color:var(--border);padding:6px 10px}
   #nav button .i{display:none}
-  #dock{bottom:12px}
-  #dock .dock-label,#dock button span{display:none}
+  #dock{bottom:12px;overflow-x:auto;scrollbar-width:none}
+  #dock::-webkit-scrollbar{display:none}  #dock .dock-label,#dock button span{display:none}
   #dock button{padding:5px}
   .hint{display:none}
   #panel{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:64vh;transform:translateY(calc(100% + 20px))}
@@ -350,6 +393,7 @@ pre.json{font:12px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word}
 
 <div id="boot"><div id="bootLog"></div><div class="skip">click or press any key to skip</div></div>
 <div id="warp"></div>
+<div id="slash"></div>
 <div class="toast" id="toast"></div>
 
 <!-- ═════════════ Data + UI (works even if WebGL is unavailable) ═════════════ -->
@@ -461,13 +505,13 @@ const RESUME = {
 };
 
 const SECTIONS = [
-  { id: 'about',        title: 'About',        method: 'GET',  path: '/about' },
-  { id: 'skills',       title: 'Skills',       method: 'GET',  path: '/skills' },
-  { id: 'experience',   title: 'Experience',   method: 'GET',  path: '/experience' },
-  { id: 'projects',     title: 'Projects',     method: 'GET',  path: '/projects' },
-  { id: 'education',    title: 'Education',    method: 'GET',  path: '/education' },
-  { id: 'achievements', title: 'Achievements', method: 'GET',  path: '/achievements' },
-  { id: 'contact',      title: 'Contact',      method: 'POST', path: '/contact' }
+  { id: 'about',        title: 'About',        method: 'GET',  path: '/about',        kanji: '魂' },
+  { id: 'skills',       title: 'Skills',       method: 'GET',  path: '/skills',       kanji: '技' },
+  { id: 'experience',   title: 'Experience',   method: 'GET',  path: '/experience',   kanji: '戦' },
+  { id: 'projects',     title: 'Projects',     method: 'GET',  path: '/projects',     kanji: '刀' },
+  { id: 'education',    title: 'Education',    method: 'GET',  path: '/education',    kanji: '学' },
+  { id: 'achievements', title: 'Achievements', method: 'GET',  path: '/achievements', kanji: '誉' },
+  { id: 'contact',      title: 'Contact',      method: 'POST', path: '/contact',      kanji: '縁' }
 ];
 
 const THEMES = [
@@ -475,8 +519,37 @@ const THEMES = [
   { id: 'space',     label: 'Deep Space', bg: '#02030a', sw: 'radial-gradient(circle at 32% 30%,#ffcf70,#ff6f91 30%,#3b1f6e 62%,#02030a)' },
   { id: 'matrix',    label: 'Matrix',     bg: '#000000', sw: 'repeating-linear-gradient(90deg,#00ff66 0 2px,#002a10 2px 5px)' },
   { id: 'blueprint', label: 'Blueprint',  bg: '#0d3a75', sw: 'repeating-linear-gradient(0deg,#ffffff55 0 1px,transparent 1px 5px),repeating-linear-gradient(90deg,#ffffff55 0 1px,#0d3a75 1px 5px)' },
-  { id: 'paper',     label: 'Paper',      bg: '#f2ede3', sw: 'linear-gradient(135deg,#f2ede3 50%,#e4572e 50%)' }
+  { id: 'paper',     label: 'Paper',      bg: '#f2ede3', sw: 'linear-gradient(135deg,#f2ede3 50%,#e4572e 50%)' },
+  { id: 'bankai',    label: 'Bankai',     bg: '#0a0507', slash: '#e5162f', sw: 'linear-gradient(135deg,#0a0507 0 46%,#f5efe6 46% 52%,#e5162f 52%)' },
+  { id: 'breathing', label: 'Demon Slayer', bg: '#07080c', slash: '#ff8a3d', sw: 'conic-gradient(#ff8a3d,#ffd60a,#3ddc84,#3fa9f5,#a9bad4,#b77dff,#ff4f1f,#ff8a3d)' }
 ];
+
+/* Anime themes: each section is drawn in its own style.
+   id    → which 3D effect the scene draws around that section's node
+   k     → one-kanji glyph (nav + bullets) · big → watermark / label · name → romaji */
+const STYLES = {
+  breathing: {
+    about:        { id: 'sun',     k: '日', big: '日の呼吸', name: 'Sun Breathing',     col: '#ff8a3d', c2: '#ffd27a' },
+    skills:       { id: 'water',   k: '水', big: '水の呼吸', name: 'Water Breathing',   col: '#3fa9f5', c2: '#bfe8ff' },
+    experience:   { id: 'flame',   k: '炎', big: '炎の呼吸', name: 'Flame Breathing',   col: '#ff4f1f', c2: '#ffd34d' },
+    projects:     { id: 'thunder', k: '雷', big: '雷の呼吸', name: 'Thunder Breathing', col: '#ffd60a', c2: '#fff6b0' },
+    education:    { id: 'mist',    k: '霞', big: '霞の呼吸', name: 'Mist Breathing',    col: '#a9bad4', c2: '#eef3fa' },
+    achievements: { id: 'wind',    k: '風', big: '風の呼吸', name: 'Wind Breathing',    col: '#3ddc84', c2: '#d6fff0' },
+    contact:      { id: 'insect',  k: '蟲', big: '蟲の呼吸', name: 'Insect Breathing',  col: '#b77dff', c2: '#f0d9ff' }
+  },
+  bankai: {
+    about:        { id: 'tensa',        k: '斬', big: '天鎖斬月',     name: 'Tensa Zangetsu',         col: '#e5162f', c2: '#ffffff', solid: '#160307', wire: '#ff2a44' },
+    skills:       { id: 'senbonzakura', k: '桜', big: '千本桜景厳',   name: 'Senbonzakura Kageyoshi', col: '#ff6f9f', c2: '#ffd6e4' },
+    experience:   { id: 'zanka',        k: '火', big: '残火の太刀',   name: 'Zanka no Tachi',         col: '#ff5a1f', c2: '#ffb347' },
+    projects:     { id: 'jakuho',       k: '雷', big: '雀蜂雷公鞭',   name: 'Jakuhō Raikōben',        col: '#ffc233', c2: '#fff2b3' },
+    education:    { id: 'hyorinmaru',   k: '氷', big: '大紅蓮氷輪丸', name: 'Daiguren Hyōrinmaru',    col: '#6fd3ff', c2: '#e6fbff' },
+    achievements: { id: 'kamishini',    k: '鎗', big: '神殺鎗',       name: 'Kamishini no Yari',      col: '#c9d4e0', c2: '#ffffff' },
+    contact:      { id: 'ashisogi',     k: '毒', big: '金色疋殺地蔵', name: 'Konjiki Ashisogi Jizō',  col: '#a64dff', c2: '#ffd84d' }
+  }
+};
+const STYLE_CALL = { breathing: '全集中', bankai: '卍解' };
+document.head.insertAdjacentHTML('beforeend', `<style>${Object.entries(STYLES).flatMap(([th, secs]) => Object.entries(secs).map(([sec, s]) =>
+  `body[data-theme="${th}"][data-sec="${sec}"]{--accent:${s.col};--accent2:${s.c2};--kanji:"${s.k}";--kanji-big:"${s.big}";--wm-size:${s.big.length > 4 ? 115 : 150}px}`)).join('')}</style>`);
 
 /* ───────── Helpers ───────── */
 const KEYS = ['Apache Kafka','Kafka','Redis','MongoDB','Stripe','AWS S3','AWS','RBAC','Google OAuth','idempotency','signature verification','cron jobs','Docker','CI/CD','Mailchimp','async/await','MsSQL','audit logging','EC2','CloudWatch','Multer','WebSockets','VGG16','Vision Transformer','EmailJS','payment gateway','rollback','RESTful APIs','aggregation pipelines'];
@@ -583,7 +656,7 @@ const body = document.body, panel = $('#panel'), pBody = $('#pBody'), pContent =
 const nav = $('#nav'), dock = $('#dock');
 let current = null, tab = 'preview';
 
-nav.innerHTML = SECTIONS.map((s, i) => `<button data-id="${s.id}"><span class="i">${String(i + 1).padStart(2, '0')}</span><span class="m ${s.method === 'POST' ? 'post' : ''}">${s.method}</span><span class="p">${s.path}</span></button>`).join('');
+nav.innerHTML = SECTIONS.map((s, i) => `<button data-id="${s.id}"><span class="i">${String(i + 1).padStart(2, '0')}</span><span class="k"></span><span class="m ${s.method === 'POST' ? 'post' : ''}">${s.method}</span><span class="p">${s.path}</span></button>`).join('');
 dock.insertAdjacentHTML('beforeend', THEMES.map(t => `<button role="radio" data-theme="${t.id}" aria-checked="false" title="${t.label} theme"><i class="sw" style="background:${t.sw}"></i><span>${t.label}</span></button>`).join(''));
 
 /* ───────── Sections ───────── */
@@ -606,12 +679,16 @@ function openSection(id) {
   code.classList.toggle('pending', s.method === 'POST');
   panel.querySelector('.lat').textContent = (8 + Math.floor(Math.random() * 34)) + ' ms';
   $('#pTitle').textContent = s.title;
+  $('#pTitle').dataset.kanji = s.kanji;
   $('#pPos').textContent = `${i + 1} / ${SECTIONS.length}`;
   renderContent();
   pBody.scrollTop = 0;
   panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false');
   body.classList.add('focused');
   nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+  const st = STYLES[theme] && STYLES[theme][id];
+  if (st && body.dataset.sec !== id && !reduceMotion) { slash(st.col); toast(`${STYLE_CALL[theme]} · ${st.big} — ${st.name}`); }
+  body.dataset.sec = id;
   try { history.replaceState(null, '', '#' + id); } catch (e) {}
   window.Scene3D && window.Scene3D.focus(id);
   dismissHint();
@@ -621,6 +698,7 @@ function closeSection() {
   current = null;
   panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true');
   body.classList.remove('focused');
+  delete body.dataset.sec;
   nav.querySelectorAll('button').forEach(b => b.classList.remove('on'));
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   window.Scene3D && window.Scene3D.home();
@@ -660,6 +738,17 @@ try { const t = localStorage.getItem('dhruv-theme'); if (THEMES.some(x => x.id =
 const qTheme = new URLSearchParams(location.search).get('theme');
 if (THEMES.some(x => x.id === qTheme)) theme = qTheme;
 function paintDock() { dock.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.theme === theme))); }
+function paintBody(id) {
+  body.dataset.theme = id;
+  const S = STYLES[id]; // per-section styles of the anime themes → nav glyphs + colours
+  nav.querySelectorAll('button').forEach(b => {
+    const st = S && S[b.dataset.id];
+    b.querySelector('.k').textContent = st ? st.k : '';
+    b.style.setProperty('--c', st ? st.col : 'var(--accent)');
+    b.title = st ? `${st.big} · ${st.name}` : '';
+  });
+}
+function slash(color) { const sl = $('#slash'); sl.style.setProperty('--s', color); sl.classList.remove('go'); void sl.offsetWidth; sl.classList.add('go'); }
 function setTheme(id, quiet) {
   const t = THEMES.find(x => x.id === id); if (!t) return false;
   theme = id;
@@ -667,19 +756,20 @@ function setTheme(id, quiet) {
   paintDock();
   const warp = $('#warp');
   warp.style.background = `radial-gradient(circle at 50% 50%, transparent 0, ${t.bg} 70%)`;
-  if (quiet || reduceMotion) { body.dataset.theme = id; window.Scene3D && window.Scene3D.applyTheme(id); return true; }
+  if (quiet || reduceMotion) { paintBody(id); window.Scene3D && window.Scene3D.applyTheme(id); return true; }
   warp.classList.add('on');
+  if (t.slash) slash(current && STYLES[id] ? STYLES[id][current].col : t.slash);
   setTimeout(() => {
-    body.dataset.theme = id;
+    paintBody(id);
     window.Scene3D && window.Scene3D.applyTheme(id, true);
     warp.classList.remove('on');
-    toast(`theme → ${t.label}`);
+    toast(id === 'bankai' ? '卍解 — every section releases its own bankai' : id === 'breathing' ? '全集中 — every section breathes its own style' : `theme → ${t.label}`);
   }, 230);
   return true;
 }
 function cycleTheme() { const i = THEMES.findIndex(t => t.id === theme); setTheme(THEMES[(i + 1) % THEMES.length].id); }
 dock.addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.theme !== theme) setTheme(b.dataset.theme); });
-body.dataset.theme = theme; paintDock();
+paintBody(theme); paintDock();
 
 let toastT;
 function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 1600); }
@@ -738,11 +828,13 @@ const CMDS = {
     `  <span class="tc-y">curl</span> &lt;path&gt;       raw JSON from the API  (e.g. curl /skills)`,
     '<span class="tc-m">look & feel</span>',
     `  <span class="tc-y">theme</span> [name]       list or switch themes`,
+    `  <span class="tc-y">bankai</span> [style]     卍解 — Bleach theme; each section releases its own bankai`,
+    `  <span class="tc-y">breathe</span> [style]    全集中 — Demon Slayer theme; each section has its own breathing style`,
     `  <span class="tc-y">classic</span>            plain printable resume`,
     `  <span class="tc-y">pdf</span>                download the PDF`,
     '<span class="tc-m">misc</span>',
     `  <span class="tc-y">whoami</span> · <span class="tc-y">neofetch</span> · <span class="tc-y">contact</span> · <span class="tc-y">date</span> · <span class="tc-y">echo</span> · <span class="tc-y">clear</span> · <span class="tc-y">exit</span>`,
-    `  <span class="tc-m">…and maybe a sudo command or two.</span>`
+    `  <span class="tc-m">…and maybe a sudo command or two. or try</span> <span class="tc-e">bankai</span>`
   ],
   ls: () => SECTIONS.map((s, i) => `<span class="tc-m">${String(i + 1).padStart(2, '0')}</span>  <span class="${s.method === 'POST' ? 'tc-p' : 'tc-b'}">${s.method.padEnd(5)}</span>/api/v1${s.path}`),
   whoami: () => [`${esc(RESUME.name)} — ${esc(RESUME.role)}`, `<span class="tc-m">(you are: visitor. thanks for stopping by.)</span>`],
@@ -778,8 +870,25 @@ const CMDS = {
     if (/rm\s+-rf/.test(cmd)) return [`<span class="tc-e">nice try.</span> idempotency checks and rollback support are in place 😉`];
     return [`visitor is not in the sudoers file. try <span class="tc-y">sudo hire-dhruv</span>`];
   },
-  hire: () => CMDS.sudo(['hire'])
+  hire: () => CMDS.sudo(['hire']),
+  bankai: a => styleCmd('bankai', 'bankai', a, 'releasing… <span class="tc-m">(reiatsu spike detected)</span>'),
+  breathe: a => styleCmd('breathing', 'breathe', a, '<span class="tc-m">inhale.</span>')
 };
+// `bankai [style]` / `breathe [style]`: switch to that anime theme, list its styles, or fly to one
+function styleCmd(th, cmd, a, flavour) {
+  const list = Object.entries(STYLES[th]), call = STYLE_CALL[th];
+  if (!a[0]) {
+    if (theme !== th) setTimeout(() => setTheme(th), 400);
+    return [`<span class="tc-y">${call}</span> — every section has its own style:`,
+      ...list.map(([sec, s]) => `  <span style="color:${s.col}">${s.big.padEnd(6, '　')}</span> ${s.id.padEnd(13)}<span class="tc-m">→ /${sec}</span>`),
+      `usage: ${cmd} &lt;style&gt;   <span class="tc-m">(flies to that section)</span>`];
+  }
+  const q = a[0].toLowerCase(), hit = list.find(([sec, s]) => s.id.startsWith(q) || sec === norm(q));
+  if (!hit) return [`<span class="tc-e">${cmd}: unknown style '${esc(a[0])}'</span> — try ${list.map(([, s]) => s.id).join(', ')}`];
+  const [sec, s] = hit;
+  setTimeout(() => { closeTerm(); if (theme !== th) setTheme(th); openSection(sec); }, 500);
+  return [`<span class="tc-y">${call}</span> · <span style="color:${s.col}">${s.big}</span> — ${s.name} … ${flavour}`];
+}
 const norm = s => { s = (s || '').toLowerCase().replace(/^\//, ''); const n = parseInt(s, 10); if (n >= 1 && n <= SECTIONS.length) return SECTIONS[n - 1].id; return SECTIONS.find(x => x.id.startsWith(s) && s)?.id || s; };
 function run(line) {
   tprint(`<span class="t-ps">visitor@dhruv<b>:~$</b></span> ${esc(line)}`);
@@ -801,7 +910,7 @@ tin.addEventListener('keydown', e => {
     e.preventDefault();
     const parts = tin.value.split(/\s+/);
     const last = parts[parts.length - 1].toLowerCase();
-    const pool = parts.length === 1 ? Object.keys(CMDS).concat(SECTIONS.map(s => s.id)) : parts[0] === 'theme' ? THEMES.map(t => t.id) : SECTIONS.map(s => s.id);
+    const pool = parts.length === 1 ? Object.keys(CMDS).concat(SECTIONS.map(s => s.id)) : parts[0] === 'theme' ? THEMES.map(t => t.id) : parts[0] === 'breathe' ? Object.values(STYLES.breathing).map(s => s.id) : parts[0] === 'bankai' ? Object.values(STYLES.bankai).map(s => s.id) : SECTIONS.map(s => s.id);
     const hits = pool.filter(p => p.startsWith(last));
     if (hits.length === 1) { parts[parts.length - 1] = hits[0]; tin.value = parts.join(' ') + ' '; }
     else if (hits.length > 1) tprint(`<span class="tc-m">${hits.join('  ')}</span>`);
@@ -862,7 +971,7 @@ addEventListener('scene-failed', () => { sceneState = 'failed'; maybeEndBoot(); 
 setTimeout(() => { if (sceneState === 'pending') { sceneState = 'failed'; maybeEndBoot(); } }, 12000);
 runBoot();
 
-window.UI = { RESUME, SECTIONS, openSection, closeSection, getTheme: () => theme, dismissHint, isOpen: () => current };
+window.UI = { RESUME, SECTIONS, STYLES, openSection, closeSection, getTheme: () => theme, dismissHint, isOpen: () => current };
 })();
 </script>
 
@@ -877,6 +986,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 const UI = window.UI;
+const STYLES = UI.STYLES;
+let STY = null; // the active theme's per-section styles (anime themes only)
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isMobile = () => innerWidth < 760;
 
@@ -926,6 +1037,29 @@ const THEMES = {
     bloom: null, solidOpacity: 0.95, emissive: 0, rough: 0.6, metal: 0,
     word: '#1d1d1f', wordOpacity: 0.35, wordFont: 'Fraunces', additive: false, rings: false, nebula: false, matrix: false,
     ambient: 1.4, dir: 2.2
+  },
+  bankai: {
+    bg: '#0a0507', fog: 0.012, core: '#e5162f',
+    palette: ['#f5efe6', '#e5162f', '#d9d2c5', '#ff4d5e', '#f5efe6', '#b3122a'],
+    wire: '#f5efe6', wireOpacity: 0.8, link: '#e5162f', linkOpacity: 0.55, p1: '#ffffff', p2: '#ff2a44',
+    stars: '#ffffff', starOpacity: 0, grid: null,
+    bloom: [0.6, 0.45, 0.22], solidOpacity: 0.85, emissive: 0.25, rough: 0.35, metal: 0.55,
+    word: '#f5efe6', wordOpacity: 0.36, wordFont: 'Shippori Mincho', additive: true, rings: true, nebula: false, matrix: false,
+    ambient: 0.35, dir: 1.6, petals: true, moon: true, breathing: false, perNode: true,
+    // every section node releases its own bankai (styles from UI.STYLES.bankai)
+    kanji: [...Object.values(STYLES.bankai).map(s => s.big), '卍解', '霊圧', '死神', '斬'],
+    kcols: Object.values(STYLES.bankai).map(s => s.col)
+  },
+  // every section node is drawn in its own breathing style (styles from UI.STYLES.breathing)
+  breathing: {
+    bg: '#07080c', fog: 0.011, core: STYLES.breathing.about.col,
+    palette: Object.values(STYLES.breathing).slice(1).map(s => s.col), wire: '#ffe7c2', wireOpacity: 0.85, link: '#ff8a3d', linkOpacity: 0.5, p1: '#ffd27a', p2: '#ff8a3d',
+    stars: '#ffffff', starOpacity: 0.35, grid: null,
+    bloom: [0.55, 0.45, 0.25], solidOpacity: 0.8, emissive: 0.22, rough: 0.4, metal: 0.45,
+    word: '#e9e2d6', wordOpacity: 0.34, wordFont: 'Shippori Mincho', additive: true, rings: true, nebula: false, matrix: false,
+    ambient: 0.4, dir: 1.5, breathing: true, perNode: true,
+    kanji: [...Object.values(STYLES.breathing).map(s => s.big), '全集中', '壱ノ型', '鬼殺', '呼吸'],
+    kcols: Object.values(STYLES.breathing).map(s => s.col)
   }
 };
 
@@ -1016,7 +1150,7 @@ SECTIONS.forEach((s, i) => {
 
   const el = document.createElement('div');
   el.className = 'nl' + (isCore ? ' nl-core' : '');
-  el.innerHTML = `<div class="nl-in"><span class="nl-n">${String(i + 1).padStart(2, '0')}</span><span class="nl-t">${isCore ? UI.RESUME.name : s.title}</span><span class="nl-p">${s.method} ${s.path}</span></div>`;
+  el.innerHTML = `<div class="nl-in"><span class="nl-n">${String(i + 1).padStart(2, '0')}</span><span class="nl-t">${isCore ? UI.RESUME.name : s.title}</span><span class="nl-p">${s.method} ${s.path}</span><span class="nl-b"></span></div>`;
   el.firstChild.addEventListener('click', () => UI.isOpen() === s.id ? UI.closeSection() : UI.openSection(s.id));
   el.firstChild.addEventListener('pointerenter', () => { labelHover = s.id; });
   el.firstChild.addEventListener('pointerleave', () => { if (labelHover === s.id) labelHover = null; });
@@ -1112,12 +1246,14 @@ const words = WORDS.map((w, k) => {
 });
 scene.add(wordGroup);
 function drawWords(th) {
-  words.forEach(({ w, c, tex, sp }) => {
+  words.forEach(({ w, c, tex, sp }, k) => {
     const g = c.getContext('2d');
     g.clearRect(0, 0, c.width, c.height);
     g.font = `600 46px "${th.wordFont}", sans-serif`;
-    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = th.word;
-    g.fillText(w, c.width / 2, c.height / 2);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    const kj = th.kanji && k % 3 === 0, ki = (k / 3 | 0) % (th.kanji ? th.kanji.length : 1);
+    g.fillStyle = kj ? (th.kcols ? th.kcols[ki % th.kcols.length] : th.kcol || '#ff3349') : th.word;
+    g.fillText(kj ? th.kanji[ki] : w, c.width / 2, c.height / 2);
     tex.needsUpdate = true;
     sp.material.opacity = th.wordOpacity;
     sp.material.blending = th.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
@@ -1144,6 +1280,316 @@ function drawMatrix() {
   mTex.needsUpdate = true;
 }
 
+/* Bankai: falling sakura petals */
+const petalTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  g.translate(32, 32); g.rotate(-0.5);
+  g.beginPath(); g.moveTo(0, 26);
+  g.bezierCurveTo(-22, 10, -16, -20, -4, -26); g.lineTo(0, -19); g.lineTo(4, -26);
+  g.bezierCurveTo(16, -20, 22, 10, 0, 26); g.closePath();
+  const gr = g.createLinearGradient(0, -26, 0, 26); gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#ffc9d4');
+  g.fillStyle = gr; g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const PETALN = 520, ptPos = new Float32Array(PETALN * 3), ptCol = new Float32Array(PETALN * 3), ptPh = new Float32Array(PETALN), ptSp = new Float32Array(PETALN);
+const PETAL_COLS = ['#ffd6df', '#ffb3c4', '#ffffff', '#ff4d5e'].map(c => new THREE.Color(c));
+for (let k = 0; k < PETALN; k++) {
+  ptPos.set([(Math.random() - 0.5) * 80, -12 + Math.random() * 44, (Math.random() - 0.5) * 80], k * 3);
+  PETAL_COLS[Math.random() < 0.15 ? 3 : (Math.random() * 3) | 0].toArray(ptCol, k * 3);
+  ptPh[k] = Math.random() * Math.PI * 2; ptSp[k] = 0.8 + Math.random() * 1.4;
+}
+const ptGeo = new THREE.BufferGeometry();
+ptGeo.setAttribute('position', new THREE.BufferAttribute(ptPos, 3));
+ptGeo.setAttribute('color', new THREE.BufferAttribute(ptCol, 3));
+const petals = new THREE.Points(ptGeo, new THREE.PointsMaterial({ size: 0.6, map: petalTex, vertexColors: true, transparent: true, depthWrite: false, alphaTest: 0.05 }));
+petals.frustumCulled = false; petals.visible = false;
+scene.add(petals);
+
+/* Bankai: pale crescent moon with a crimson halo */
+const moonTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(256, 256, 200, 0, Math.PI * 2); g.fill();
+  g.globalCompositeOperation = 'destination-out';
+  g.beginPath(); g.arc(335, 205, 190, 0, Math.PI * 2); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const moon = new THREE.Group();
+const moonHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: '#e5162f', transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+moonHalo.scale.setScalar(120);
+const moonDisc = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, color: '#fff3ee', transparent: true, depthWrite: false, fog: false }));
+moonDisc.scale.setScalar(52);
+moon.add(moonHalo, moonDisc);
+moon.position.set(30, 46, -130); moon.visible = false;
+scene.add(moon);
+
+/* ───────── Breathing: every section node gets its own elemental FX ───────── */
+const TAU = Math.PI * 2, rnd = Math.random;
+const FX_PER = 130, FXN = FX_PER * nodes.length;
+const fxPos = new Float32Array(FXN * 3), fxCol = new Float32Array(FXN * 3), fxBase = new Float32Array(FXN * 3), fxO = new Float32Array(FXN * 3);
+const fxA = new Float32Array(FXN), fxB = new Float32Array(FXN), fxC = new Float32Array(FXN);
+const fxGeo = new THREE.BufferGeometry();
+fxGeo.setAttribute('position', new THREE.BufferAttribute(fxPos, 3));
+fxGeo.setAttribute('color', new THREE.BufferAttribute(fxCol, 3));
+const fxPts = new THREE.Points(fxGeo, new THREE.PointsMaterial({ size: 0.3, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+fxPts.frustumCulled = false; fxPts.visible = false;
+scene.add(fxPts);
+
+// Mist needs big soft sprites, so it gets its own small point cloud around its node
+const MISTN = 44, mistPos = new Float32Array(MISTN * 3), mistA = new Float32Array(MISTN), mistR = new Float32Array(MISTN), mistY = new Float32Array(MISTN);
+const mistGeo = new THREE.BufferGeometry(); mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPos, 3));
+const mistPts = new THREE.Points(mistGeo, new THREE.PointsMaterial({ size: 4.5, map: softTex, color: STYLES.breathing.education.col, transparent: true, opacity: 0.07, depthWrite: false, blending: THREE.AdditiveBlending }));
+mistPts.frustumCulled = false; mistPts.visible = false;
+scene.add(mistPts);
+
+// Senbonzakura (Bankai · Skills) gets real petal sprites on top of its sparkles
+const SAKN = 240, sakPos = new Float32Array(SAKN * 3), sakA = new Float32Array(SAKN), sakB = new Float32Array(SAKN), sakC = new Float32Array(SAKN);
+const sakGeo = new THREE.BufferGeometry(); sakGeo.setAttribute('position', new THREE.BufferAttribute(sakPos, 3));
+const sakPts = new THREE.Points(sakGeo, new THREE.PointsMaterial({ size: 0.42, map: petalTex, color: '#ffc2d6', transparent: true, depthWrite: false, alphaTest: 0.05 }));
+sakPts.frustumCulled = false; sakPts.visible = false;
+scene.add(sakPts);
+
+function seedFx() {
+  nodes.forEach((n, ni) => {
+    const st = STY[n.id], c1 = new THREE.Color(st.col), c2 = new THREE.Color(st.c2);
+    for (let j = 0; j < FX_PER; j++) {
+      const k = ni * FX_PER + j;
+      fxA[k] = rnd() * TAU; fxB[k] = rnd(); fxC[k] = rnd();
+      (rnd() < 0.6 ? c1 : c2).toArray(fxBase, k * 3);
+      if (st.id === 'thunder') fxB[k] = 0;
+      if (st.id === 'tensa') fxB[k] = (j % 5) / 5; // each crescent wave shares one progress value
+    }
+  });
+  for (let k = 0; k < SAKN; k++) { sakA[k] = rnd() * TAU; sakB[k] = (rnd() * 4) | 0; sakC[k] = rnd(); }
+  for (let k = 0; k < MISTN; k++) { mistA[k] = rnd() * TAU; mistR[k] = 1.5 + rnd() * 3.5; mistY[k] = (rnd() - 0.5) * 3; }
+}
+
+function updateFx(dt, t, hov) {
+  const slow = reduceMotion ? 0.25 : 1;
+  nodes.forEach((n, ni) => {
+    const st = STY[n.id], P = n.group.position, R0 = n.r * n.group.scale.x;
+    const sp = slow * ((focusedId === n.id || hov === n.id) ? 2.2 : 1) * (1 + n.boost * 2);
+    for (let j = 0; j < FX_PER; j++) {
+      const k = ni * FX_PER + j, i = k * 3;
+      let x = 0, y = 0, z = 0, b = 1;
+      switch (st.id) {
+        case 'sun': { // blazing corona wrapped around the core
+          fxA[k] += dt * 0.5 * (0.6 + fxC[k]) * sp;
+          const phi = Math.acos(2 * fxB[k] - 1), rad = R0 * 1.35 + fxC[k] * 1.2 + Math.sin(t * 3 + fxA[k] * 5) * 0.25;
+          x = Math.sin(phi) * Math.cos(fxA[k]) * rad; y = Math.cos(phi) * rad; z = Math.sin(phi) * Math.sin(fxA[k]) * rad;
+          b = 0.55 + 0.45 * Math.sin(t * 6 + fxC[k] * 30);
+          break;
+        }
+        case 'water': { // two currents rippling around the node
+          fxA[k] += dt * 0.9 * (0.7 + fxC[k] * 0.6) * sp;
+          const s2 = j & 1, th = fxA[k] + s2 * Math.PI;
+          const rad = R0 * 1.7 + Math.sin(3 * th + t * 1.5) * 0.35 + (fxC[k] - 0.5) * 0.35;
+          x = Math.cos(th) * rad; z = Math.sin(th) * rad;
+          y = Math.sin(2 * th + t + s2 * 1.5) * 0.7 + (fxB[k] - 0.5) * 0.25;
+          break;
+        }
+        case 'flame': { // embers rising off the node, fading as they climb
+          fxB[k] += dt * (0.3 + fxC[k] * 0.35) * sp;
+          if (fxB[k] > 1) { fxB[k] = 0; fxA[k] = rnd() * TAU; }
+          const h = fxB[k], rad = R0 * 0.9 * (1 - h * 0.4) * (0.4 + fxC[k] * 0.6);
+          x = Math.cos(fxA[k]) * rad + Math.sin(t * 3 + fxC[k] * 20) * 0.3 * h;
+          z = Math.sin(fxA[k]) * rad + Math.cos(t * 2.6 + fxC[k] * 17) * 0.3 * h;
+          y = -R0 * 0.3 + h * 5.5;
+          b = (1 - h) * (0.6 + 0.4 * Math.sin(t * 14 + fxC[k] * 40));
+          break;
+        }
+        case 'thunder': { // sparks crackling in a shell around the node
+          if (rnd() < dt * 1.8 * sp) {
+            fxB[k] = 1;
+            const d = new THREE.Vector3().randomDirection().multiplyScalar(R0 * (1.1 + rnd() * 0.9));
+            fxO[i] = d.x; fxO[i + 1] = d.y; fxO[i + 2] = d.z;
+          }
+          fxB[k] = Math.max(0, fxB[k] - dt * 5);
+          if (fxB[k] > 0) { fxO[i] += (rnd() - 0.5) * 0.18; fxO[i + 1] += (rnd() - 0.5) * 0.18; fxO[i + 2] += (rnd() - 0.5) * 0.18; }
+          x = fxO[i]; y = fxO[i + 1]; z = fxO[i + 2]; b = fxB[k];
+          break;
+        }
+        case 'mist': { // faint droplets drifting slowly in the haze
+          fxA[k] += dt * 0.12 * (0.5 + fxC[k]) * sp;
+          const rad = R0 * 1.3 + fxB[k] * 3;
+          x = Math.cos(fxA[k]) * rad; z = Math.sin(fxA[k]) * rad;
+          y = (fxC[k] - 0.5) * 3 + Math.sin(t * 0.4 + fxA[k] * 2) * 0.3;
+          b = 0.3 + 0.25 * Math.sin(t * 0.8 + fxC[k] * 10);
+          break;
+        }
+        case 'wind': { // a tornado, tight at the base and wide at the top
+          const h = fxB[k];
+          fxA[k] += dt * (2.2 + 2.5 * (1 - h)) * sp;
+          const rad = R0 * 0.6 + h * 2.6;
+          x = Math.cos(fxA[k]) * rad; z = Math.sin(fxA[k]) * rad;
+          y = -R0 * 1.1 + h * 4.6 + Math.sin(t * 2 + fxC[k] * 10) * 0.15;
+          b = 0.35 + 0.65 * h;
+          break;
+        }
+        case 'insect': { // butterflies fluttering around the node
+          fxA[k] += dt * 0.5 * sp;
+          const a = fxA[k], spread = R0 * 1.2 + fxB[k] * 1.8;
+          x = Math.sin(a * (0.6 + fxC[k]) + fxB[k] * 9) * spread;
+          y = Math.sin(a * (0.7 + fxB[k]) * 1.3 + fxC[k] * 7) * 1.4;
+          z = Math.cos(a * (0.5 + fxC[k] * 0.8) + fxB[k] * 5) * spread;
+          b = 0.3 + 0.7 * Math.abs(Math.sin(t * 13 + fxC[k] * 20)); // wing beats
+          break;
+        }
+        /* ── Bankai ── */
+        case 'tensa': { // crescent slash waves flying off the core, crimson-edged
+          fxB[k] += dt * 0.32 * sp; if (fxB[k] > 1) fxB[k] -= 1;
+          const w = j % 5, prog = fxB[k], orient = w * 1.26 + t * 0.15;
+          const a = (fxC[k] - 0.5) * Math.PI * 1.1, thick = 1 - Math.abs(2 * fxC[k] - 1);
+          const rad = R0 * 1.15 + prog * 6 + (fxA[k] / TAU - 0.5) * 0.5 * thick;
+          x = Math.cos(a + orient) * rad; z = Math.sin(a + orient) * rad;
+          y = Math.sin(a) * rad * 0.28 * (w % 2 ? 1 : -1);
+          b = (1 - prog) * (0.35 + 0.65 * thick);
+          break;
+        }
+        case 'senbonzakura': { // a swarm of blade-petals in tilted, churning bands
+          fxA[k] += dt * (1.1 + fxC[k] * 0.8) * sp;
+          const band = j % 4, tilt = band * 0.8 + Math.sin(t * 0.3 + band) * 0.3;
+          const rad = R0 * 1.6 + band * 0.5 + Math.sin(fxA[k] * 3 + t) * 0.35;
+          const x0 = Math.cos(fxA[k]) * rad, y0 = Math.sin(fxA[k] * 2 + fxC[k] * 6) * 0.35, z0 = Math.sin(fxA[k]) * rad;
+          x = x0; y = y0 * Math.cos(tilt) - z0 * Math.sin(tilt); z = y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
+          b = 0.5 + 0.5 * Math.sin(t * 5 + fxC[k] * 30);
+          break;
+        }
+        case 'zanka': { // a column of scorching fire spiralling up, ringed by flame at the base
+          if (j % 4 === 0) {
+            const a = fxA[k] + t * 1.2 * sp;
+            x = Math.cos(a) * R0 * 1.8; z = Math.sin(a) * R0 * 1.8;
+            y = -R0 * 0.7 + Math.abs(Math.sin(t * 8 + fxC[k] * 20)) * 0.5;
+            b = 0.6 + 0.4 * Math.sin(t * 14 + fxC[k] * 30);
+          } else {
+            fxB[k] += dt * (0.4 + fxC[k] * 0.4) * sp; if (fxB[k] > 1) fxB[k] -= 1;
+            const h = fxB[k], a = fxA[k] + h * TAU * 2 + t * 1.5, rad = R0 * 0.8 * (1 - h * 0.35) + fxC[k] * 0.3;
+            x = Math.cos(a) * rad; z = Math.sin(a) * rad; y = -R0 * 0.5 + h * 7.5;
+            b = Math.pow(1 - h, 0.7) * (0.6 + 0.4 * Math.sin(t * 16 + fxC[k] * 40));
+          }
+          break;
+        }
+        case 'jakuho': { // golden energy converging on the node as it charges up
+          fxB[k] += dt * (0.45 + fxC[k] * 0.3) * sp;
+          if (fxB[k] > 1) { fxB[k] -= 1; fxA[k] = rnd() * TAU; fxC[k] = rnd(); }
+          const prog = fxB[k], phi = Math.acos(2 * fxC[k] - 1), rad = R0 * 0.55 + Math.pow(1 - prog, 2) * 6;
+          x = Math.sin(phi) * Math.cos(fxA[k]) * rad; y = Math.cos(phi) * rad; z = Math.sin(phi) * Math.sin(fxA[k]) * rad;
+          b = prog * prog;
+          break;
+        }
+        case 'hyorinmaru': { // snow falling around a slowly turning twelve-petal ice flower
+          if (j & 1) {
+            const p = (j >> 1) % 12, pa = p / 12 * TAU + t * 0.1, s = fxB[k];
+            const wv = (fxC[k] - 0.5) * 0.7 * Math.sin(s * Math.PI), radial = R0 * 1.3 + s * 1.8;
+            x = Math.cos(pa) * radial - Math.sin(pa) * wv; z = Math.sin(pa) * radial + Math.cos(pa) * wv;
+            y = R0 * 0.9 + s * 0.35;
+            b = 0.45 + 0.4 * Math.sin(t * 1.5 + p);
+          } else {
+            fxA[k] += dt * 0.12 * sp;
+            const fall = (fxC[k] + t * 0.07 * slow) % 1, rad = R0 * 0.9 + fxB[k] * 3;
+            x = Math.cos(fxA[k]) * rad + Math.sin(t + fxC[k] * 10) * 0.2; z = Math.sin(fxA[k]) * rad;
+            y = 4.5 - fall * 9;
+            b = 0.6;
+          }
+          break;
+        }
+        case 'kamishini': { // three blades lunging out at extreme speed, then snapping back
+          const L = j % 3, ext = Math.pow(Math.max(0, Math.sin(t * 1.4 * slow + L * 2.1)), 3) * 9;
+          const th = L * TAU / 3 + t * 0.25, el = Math.sin(t * 0.5 + L) * 0.3, d = R0 * 0.9 + fxB[k] * ext;
+          x = Math.cos(th) * Math.cos(el) * d + (fxC[k] - 0.5) * 0.08;
+          y = Math.sin(el) * d + (fxA[k] / TAU - 0.5) * 0.08;
+          z = Math.sin(th) * Math.cos(el) * d;
+          b = 0.2 + 0.8 * Math.min(1, ext / 4);
+          break;
+        }
+        case 'ashisogi': { // puffs of poison gas billowing out and rising
+          fxB[k] += dt * (0.2 + fxC[k] * 0.15) * sp;
+          if (fxB[k] > 1) { fxB[k] -= 1; fxA[k] = rnd() * TAU; fxC[k] = rnd(); }
+          const prog = fxB[k], phi = Math.acos(2 * fxC[k] - 1), rad = R0 * 1.1 + prog * 3.5;
+          x = Math.sin(phi) * Math.cos(fxA[k]) * rad; z = Math.sin(phi) * Math.sin(fxA[k]) * rad;
+          y = Math.cos(phi) * rad * 0.7 + prog * 1.6;
+          b = Math.sin(prog * Math.PI) * 0.8;
+          break;
+        }
+      }
+      fxPos[i] = P.x + x; fxPos[i + 1] = P.y + y; fxPos[i + 2] = P.z + z;
+      fxCol[i] = fxBase[i] * b; fxCol[i + 1] = fxBase[i + 1] * b; fxCol[i + 2] = fxBase[i + 2] * b;
+    }
+  });
+  fxGeo.attributes.position.needsUpdate = true;
+  fxGeo.attributes.color.needsUpdate = true;
+
+  if (sakPts.visible) { // Senbonzakura: real petal sprites riding the same churning bands
+    const n = nodeMap.skills, P = n.group.position, R0 = n.r * n.group.scale.x;
+    const sp = slow * ((focusedId === 'skills' || hov === 'skills') ? 2.2 : 1) * (1 + n.boost * 2);
+    for (let k = 0; k < SAKN; k++) {
+      sakA[k] += dt * (1.1 + sakC[k] * 0.8) * sp;
+      const band = sakB[k], tilt = band * 0.8 + Math.sin(t * 0.3 + band) * 0.3;
+      const rad = R0 * 1.6 + band * 0.5 + Math.sin(sakA[k] * 3 + t) * 0.35;
+      const x0 = Math.cos(sakA[k]) * rad, y0 = Math.sin(sakA[k] * 2 + sakC[k] * 6) * 0.35, z0 = Math.sin(sakA[k]) * rad;
+      sakPos[k * 3] = P.x + x0;
+      sakPos[k * 3 + 1] = P.y + y0 * Math.cos(tilt) - z0 * Math.sin(tilt);
+      sakPos[k * 3 + 2] = P.z + y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
+    }
+    sakGeo.attributes.position.needsUpdate = true;
+  }
+
+  if (!mistPts.visible) return;
+  const E = nodeMap.education.group.position;
+  for (let k = 0; k < MISTN; k++) {
+    mistA[k] += dt * 0.08 * slow;
+    mistPos[k * 3] = E.x + Math.cos(mistA[k]) * mistR[k];
+    mistPos[k * 3 + 1] = E.y + mistY[k] + Math.sin(t * 0.3 + k) * 0.3;
+    mistPos[k * 3 + 2] = E.z + Math.sin(mistA[k]) * mistR[k];
+  }
+  mistGeo.attributes.position.needsUpdate = true;
+}
+
+/* Thunder: lightning keeps striking the Projects node */
+const BOLTN = 20;
+const boltMat = new THREE.LineBasicMaterial({ color: STYLES.breathing.projects.c2, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+const bolts = [0, 1, 2].map(() => {
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(BOLTN * 3), 3));
+  const l = new THREE.Line(g, boltMat); l.frustumCulled = false; l.visible = false; scene.add(l); return l;
+});
+let boltWait = 1.2, boltLife = 0;
+function setBolt(l, pts) { const a = l.geometry.attributes.position.array; pts.forEach((p, k) => p.toArray(a, k * 3)); l.geometry.attributes.position.needsUpdate = true; }
+function strike() {
+  const n = nodeMap.projects, end = n.group.position;
+  const start = new THREE.Vector3(end.x + (rnd() - 0.5) * 12, end.y + 18, end.z + (rnd() - 0.5) * 12);
+  const main = [];
+  for (let k = 0; k < BOLTN; k++) {
+    const f = k / (BOLTN - 1), p = start.clone().lerp(end, f);
+    if (k && k < BOLTN - 1) { const j = 2 * (1 - f * 0.6); p.x += (rnd() - 0.5) * j; p.z += (rnd() - 0.5) * j; p.y += (rnd() - 0.5) * j * 0.4; }
+    main.push(p);
+  }
+  setBolt(bolts[0], main);
+  setBolt(bolts[1], main.map(p => p.clone().add(new THREE.Vector3(0.08, 0, 0.08))));
+  const from = main[6], dir = new THREE.Vector3(rnd() - 0.5, -0.8, rnd() - 0.5).normalize(), branch = [];
+  for (let k = 0; k < BOLTN; k++) { const p = from.clone().addScaledVector(dir, k * 0.4); if (k) { p.x += (rnd() - 0.5) * 0.8; p.z += (rnd() - 0.5) * 0.8; } branch.push(p); }
+  setBolt(bolts[2], branch);
+  boltLife = 1; n.boost = Math.max(n.boost, 0.6);
+}
+
+/* Breathing: a sword-swing trail circling every node in its style's colour */
+function trailGeo(rad) {
+  const ARC = Math.PI * 1.3, g = new THREE.TorusGeometry(rad, 0.055, 6, 100, ARC), pos = g.attributes.position;
+  const col = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    let a = Math.atan2(pos.getY(i), pos.getX(i)); if (a < 0) a += TAU;
+    const f = Math.pow(Math.min(1, a / ARC), 2);
+    col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = f;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return g;
+}
+nodes.forEach(n => {
+  n.trail = new THREE.Mesh(trailGeo(n.r * (n.isCore ? 1.75 : 1.95)), new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  n.trail.visible = false;
+  n.group.add(n.trail);
+});
+
 /* Click pulse */
 const pulse = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 64), new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, depthWrite: false }));
 pulse.visible = false; scene.add(pulse);
@@ -1151,6 +1597,7 @@ let pulseT = 1;
 function burst(id) {
   const n = nodeMap[id]; if (!n) return;
   pulse.position.copy(n.group.position); pulse.lookAt(camera.position); pulseT = 0; pulse.visible = true;
+  pulse.material.color.set(STY ? STY[id].col : TH.p2);
   n.boost = 1;
 }
 
@@ -1167,32 +1614,50 @@ function applyTheme(name, animate) {
   coreLight.color.set(th.core); coreLight.intensity = th.bloom ? 14 : 18;
 
   const blend = th.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+  STY = th.perNode ? STYLES[name] : null;
+  const per = !!STY; // anime themes: each node uses its own style colours
   nodes.forEach(n => {
-    const col = new THREE.Color(n.isCore ? th.core : th.palette[(n.i - 1) % th.palette.length]);
+    const st = per && STY[n.id];
+    const col = new THREE.Color(per ? st.col : n.isCore ? th.core : th.palette[(n.i - 1) % th.palette.length]);
     const m = n.solid.material;
-    m.color.copy(col); m.emissive.copy(col); m.emissiveIntensity = th.emissive;
+    const body = per && st.solid ? new THREE.Color(st.solid) : col; // e.g. Tensa Zangetsu's black core
+    m.color.copy(body); m.emissive.copy(body); m.emissiveIntensity = th.emissive;
+    n.el.style.setProperty('--c', per ? st.col : '');
+    n.el.querySelector('.nl-b').textContent = per ? `${st.big} · ${st.name}` : '';
     m.opacity = th.solidOpacity; m.depthWrite = th.solidOpacity > 0.5;
     m.roughness = th.rough; m.metalness = th.metal; m.needsUpdate = true;
-    n.wire.material.color.set(th.wire); n.wire.material.opacity = th.wireOpacity;
+    n.wire.material.color.set(per ? st.wire || st.c2 : th.wire); n.wire.material.opacity = th.wireOpacity;
     n.ring.visible = th.rings;
     n.ring.material.color.set(name === 'blueprint' ? '#ffd166' : col); n.ring.material.opacity = name === 'blueprint' ? 0.5 : 0.45;
+    n.trail.visible = per; n.trail.material.color.set(per ? st.c2 : '#ffffff');
   });
+  gyro.visible = !per; // the Sun corona replaces the core's gyroscope rings
   gyroRings.forEach((g, k) => { g.material.color.set(k ? th.p1 : th.wire); g.material.opacity = th.additive ? 0.8 : 0.6; });
   sats.forEach((s, k) => {
-    const c = new THREE.Color(th.palette[k % th.palette.length]);
+    const c = new THREE.Color(per ? (k % 2 ? STY.skills.c2 : STY.skills.col) : th.palette[k % th.palette.length]);
     s.m.material.color.copy(c); s.m.material.emissive.copy(c); s.m.material.emissiveIntensity = Math.max(0.4, th.emissive);
   });
-  links.forEach(l => { l.line.material.color.set(th.link); l.line.material.opacity = th.linkOpacity; l.line.material.blending = blend; l.line.material.needsUpdate = true; });
+  links.forEach(l => { l.line.material.color.set(per ? STY[l.node.id].col : th.link); l.line.material.opacity = th.linkOpacity; l.line.material.blending = blend; l.line.material.needsUpdate = true; });
   const c1 = new THREE.Color(th.p1), c2 = new THREE.Color(th.p2);
-  for (let k = 0; k < PCOUNT; k++) (pDir[k] > 0 ? c1 : c2).toArray(pCol, k * 3);
+  const linkCols = links.map(l => [new THREE.Color(STY[l.node.id].c2), new THREE.Color(STY[l.node.id].col)]);
+  for (let k = 0; k < PCOUNT; k++) {
+    const pair = per ? linkCols[(k / PER) | 0] : [c1, c2];
+    (pDir[k] > 0 ? pair[0] : pair[1]).toArray(pCol, k * 3);
+  }
   pGeo.attributes.color.needsUpdate = true;
   pMat.blending = blend; pMat.size = th.additive ? 0.26 : 0.2; pMat.needsUpdate = true;
   stars.visible = th.starOpacity > 0; stars.material.color.set(th.stars); stars.material.opacity = th.starOpacity;
   nebula.visible = th.nebula;
+  petals.visible = !!th.petals;
+  moon.visible = !!th.moon;
+  fxPts.visible = per; if (per) seedFx();
+  mistPts.visible = per && STY.education.id === 'mist';
+  sakPts.visible = per && STY.skills.id === 'senbonzakura';
+  bolts.forEach(b => b.visible = per && STY.projects.id === 'thunder'); boltMat.opacity = 0; boltLife = 0;
   pulse.material.color.set(th.p2); pulse.material.blending = blend; pulse.material.needsUpdate = true;
   buildGrid(th);
   drawWords(th);
-  document.fonts && document.fonts.load(`600 46px "${th.wordFont}"`).then(() => { if (TH === th) drawWords(th); }).catch(() => {});
+  document.fonts && document.fonts.load(`600 46px "${th.wordFont}"`, WORDS.join('') + (th.kanji || []).join('')).then(() => { if (TH === th) drawWords(th); }).catch(() => {});
   if (animate && !reduceMotion) fovKick = 1;
 }
 
@@ -1279,7 +1744,7 @@ function tick() {
     n.target = isF ? 1.18 : isH ? 1.22 : 1;
     n.el.classList.toggle('hover', isH);
     n.scale += (n.target - n.scale) * Math.min(1, dt * 8);
-    n.group.scale.setScalar(n.scale);
+    n.group.scale.setScalar(n.scale * (TH.breathing ? 1 + Math.sin(t * 1.8 + n.i * 0.6) * 0.045 : 1));
     const sp = n.spin * (isH || isF ? 2.4 : 1);
     n.solid.rotation.x += dt * sp * 0.7; n.solid.rotation.y += dt * sp;
     n.wire.rotation.x -= dt * sp * 0.35; n.wire.rotation.y -= dt * sp * 0.5;
@@ -1318,6 +1783,36 @@ function tick() {
   stars.rotation.y += dt * 0.004;
   if (grid && TH.gridScroll) grid.position.z = (t * 1.6) % 2.5;
   if (TH.matrix) { mAcc += dt; if (mAcc > 0.05) { mAcc = 0; drawMatrix(); } }
+  if (petals.visible) {
+    const fall = reduceMotion ? 0.25 : 1;
+    for (let k = 0; k < PETALN; k++) {
+      const i3 = k * 3;
+      ptPos[i3] += Math.sin(t * 0.9 + ptPh[k]) * dt * 1.2 * fall + dt * 0.6 * fall;
+      ptPos[i3 + 1] -= ptSp[k] * dt * fall;
+      ptPos[i3 + 2] += Math.cos(t * 0.7 + ptPh[k]) * dt * 0.8 * fall;
+      if (ptPos[i3 + 1] < -12) { ptPos[i3 + 1] = 32; ptPos[i3] = (Math.random() - 0.5) * 80; ptPos[i3 + 2] = (Math.random() - 0.5) * 80; }
+      if (ptPos[i3] > 40) ptPos[i3] -= 80;
+    }
+    ptGeo.attributes.position.needsUpdate = true;
+  }
+  if (TH.perNode) {
+    updateFx(dt, t, hov);
+    // total concentration: the whole scene inhales and exhales
+    if (TH.bloom) bloom.strength = TH.bloom[0] * (1 + Math.sin(t * 1.8) * 0.18);
+    const s = reduceMotion ? 0.3 : 1;
+    nodes.forEach(n => {
+      const fast = focusedId === n.id || hov === n.id ? 2 : 1;
+      n.trail.rotation.set(1.1 + Math.sin(t * 0.5 + n.i) * 0.35, n.i * 0.7, n.trail.rotation.z - dt * (2 + (n.i % 3) * 0.5) * s * fast);
+    });
+    // Thunder: lightning on the Projects node
+    boltWait -= dt;
+    if (boltWait <= 0 && !reduceMotion && bolts[0].visible) { strike(); boltWait = (focusedId === 'projects' ? 0.5 : 1.2) + rnd() * 2.2; }
+    if (boltLife > 0) {
+      boltLife = Math.max(0, boltLife - dt * 3.2);
+      boltMat.opacity = boltLife * (0.6 + 0.4 * Math.sin(t * 90));
+      ambient.intensity = TH.ambient + boltLife * 0.5;
+    }
+  }
 
   if (pulse.visible) {
     pulseT += dt * 1.4;
