@@ -1639,7 +1639,7 @@ function applyTheme(name, animate) {
   });
   links.forEach(l => { l.line.material.color.set(per ? STY[l.node.id].col : th.link); l.line.material.opacity = th.linkOpacity; l.line.material.blending = blend; l.line.material.needsUpdate = true; });
   const c1 = new THREE.Color(th.p1), c2 = new THREE.Color(th.p2);
-  const linkCols = links.map(l => [new THREE.Color(STY[l.node.id].c2), new THREE.Color(STY[l.node.id].col)]);
+  const linkCols = per ? links.map(l => [new THREE.Color(STY[l.node.id].c2), new THREE.Color(STY[l.node.id].col)]) : null;
   for (let k = 0; k < PCOUNT; k++) {
     const pair = per ? linkCols[(k / PER) | 0] : [c1, c2];
     (pDir[k] > 0 ? pair[0] : pair[1]).toArray(pCol, k * 3);
