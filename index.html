@@ -655,7 +655,7 @@ panel.addEventListener('submit', e => {
 });
 
 /* ───────── Themes ───────── */
-let theme = 'neon';
+let theme = 'space';
 try { const t = localStorage.getItem('dhruv-theme'); if (THEMES.some(x => x.id === t)) theme = t; } catch (e) {}
 const qTheme = new URLSearchParams(location.search).get('theme');
 if (THEMES.some(x => x.id === qTheme)) theme = qTheme;
